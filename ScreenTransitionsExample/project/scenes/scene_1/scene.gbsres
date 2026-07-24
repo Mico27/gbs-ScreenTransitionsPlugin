@@ -1,0 +1,98 @@
+{
+  "_resourceType": "scene",
+  "id": "362ab001-34bb-4129-b133-66a0c4c39af0",
+  "_index": 0,
+  "name": "Scene 1",
+  "backgroundId": "a7817d13-7724-4f7a-9e13-5a63092096dc",
+  "tilesetId": "596fb3c3-0fbb-45f6-94f4-7cbd90377bc1",
+  "width": 40,
+  "height": 36,
+  "type": "TOPDOWN",
+  "colorModeOverride": "none",
+  "paletteIds": [],
+  "spritePaletteIds": [],
+  "collisions": "005a0+",
+  "autoFadeSpeed": null,
+  "symbol": "scene_1",
+  "x": 104,
+  "y": 80,
+  "script": [
+    {
+      "command": "PT_EVENT_SCREEN_TRANSITION_IN",
+      "args": {
+        "effect": "iris_out",
+        "source": "current",
+        "layer": "overlay",
+        "sceneId": "7119b714-60bc-44e0-9476-565c939e810a",
+        "srcX": {
+          "type": "number",
+          "value": 0
+        },
+        "srcY": {
+          "type": "number",
+          "value": 0
+        },
+        "speed": {
+          "type": "number",
+          "value": 1
+        },
+        "hold": {
+          "type": "number",
+          "value": 1
+        },
+        "coverFirst": true,
+        "coverTile": 201,
+        "hideSprites": false,
+        "showSprites": true,
+        "x": {
+          "type": "number",
+          "value": -2
+        },
+        "y": {
+          "type": "number",
+          "value": -2
+        },
+        "width": {
+          "type": "number",
+          "value": 24
+        },
+        "height": {
+          "type": "number",
+          "value": 22
+        }
+      },
+      "id": "438f989a-7df4-4a36-bbd1-c7a6ac04c7a5"
+    },
+    {
+      "command": "EVENT_OVERLAY_HIDE",
+      "args": {
+        "__comment": false
+      },
+      "id": "4d563bbf-8ba2-42e7-934a-33e79148ecef"
+    },
+    {
+      "command": "EVENT_ACTOR_MOVE_RELATIVE",
+      "args": {
+        "__section": "movement",
+        "actorId": "$self$",
+        "x": {
+          "type": "number",
+          "value": 0
+        },
+        "y": {
+          "type": "number",
+          "value": 2
+        },
+        "collideWith": [
+          "walls"
+        ],
+        "lockDirection": [],
+        "moveType": "horizontal"
+      },
+      "id": "239b089c-3a76-452f-8b23-b71191d4c910"
+    }
+  ],
+  "playerHit1Script": [],
+  "playerHit2Script": [],
+  "playerHit3Script": []
+}

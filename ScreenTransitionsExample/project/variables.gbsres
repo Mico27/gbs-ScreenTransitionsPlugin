@@ -1,0 +1,36 @@
+{
+  "_resourceType": "variables",
+  "variables": [
+    {
+      "id": "0",
+      "name": "CurrentBackId",
+      "symbol": "var_currentbackid"
+    },
+    {
+      "id": "1",
+      "name": "CurrentFrontId",
+      "symbol": "var_currentfrontid"
+    },
+    {
+      "id": "2",
+      "name": "PosX",
+      "symbol": "var_posx"
+    },
+    {
+      "id": "3",
+      "name": "PosY",
+      "symbol": "var_posy"
+    },
+    {
+      "id": "4",
+      "name": "Tile Id",
+      "symbol": "var_tile_id"
+    },
+    {
+      "id": "5",
+      "name": "Tile Attribute",
+      "symbol": "var_tile_attribute"
+    }
+  ],
+  "constants": []
+}
