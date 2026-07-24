@@ -106,14 +106,6 @@ Every numeric field (region X/Y/W/H, steps/frames, source X/Y, fill tile id, CGB
 palette) is a **value** field, so it accepts a **variable** or expression as well
 as a constant — the transition reads them at runtime.
 
-## Example project
-
-`ScreenTransitionsExample/` opens in GB Studio 4.3 and auto-plays all 13
-transitions in a single scene, then a scroll-tracked transition, then a
-cross-scene reveal using a Source offset into a second scene. Prebuilt ROM at
-`ScreenTransitionsExample/build/rom/game.gb`. Verified to compile with the GB
-Studio 4.3 CLI.
-
 ## Install
 
 Copy `src/ScreenTransitionsPlugin` into your project's `plugins/` folder, then
