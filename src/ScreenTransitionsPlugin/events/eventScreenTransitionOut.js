@@ -21,11 +21,29 @@ const EFFECTS = [
   ["diag_tl", "Diagonal ↘"],
   ["diag_br", "Diagonal ↖"],
   ["checker", "Checkerboard"],
+  ["snake_h", "Snake (horizontal)"],
+  ["snake_v", "Snake (vertical)"],
+  ["spiral", "Spiral (snake, inward)"],
+  ["blinds_h", "Blinds (horizontal bars)"],
+  ["blinds_v", "Blinds (vertical bars)"],
+  ["four_sq", "4-Square (chunky blocks)"],
+  ["diamond_in", "Diamond Close"],
+  ["diamond_out", "Diamond Open"],
+  ["clock", "Clock (radial sweep)"],
+  ["noise", "Random Noise"],
+  ["fan4", "4-Blade Fan"],
+  ["x", "X (cross)"],
+  ["mask_grow", "Mask Grow (scene as mask)"],
+  ["mask_shrink", "Mask Shrink (scene as mask)"],
 ];
 const EFFECT_ID = {
   wipe_right: 0, wipe_left: 1, wipe_down: 2, wipe_up: 3,
   split_h: 4, open_h: 5, split_v: 6, open_v: 7,
   iris_in: 8, iris_out: 9, diag_tl: 10, diag_br: 11, checker: 12,
+  snake_h: 13, snake_v: 14, blinds_h: 15, blinds_v: 16, four_sq: 17,
+  diamond_in: 18, diamond_out: 19,
+  clock: 20, noise: 21, fan4: 22, x: 23, mask_grow: 24, mask_shrink: 25,
+  spiral: 26,
 };
 
 const num = (value) => ({ type: "number", value });
@@ -138,45 +156,83 @@ export const fields = [
   {
     type: "label",
     label:
+      "Mask Grow/Shrink: the mask scene's tile values (0-255) set the reveal order — darker/lower tiles first (Grow) so any drawn gradient becomes the transition shape.",
+    conditions: [{ key: "effect", in: ["mask_grow", "mask_shrink"] }],
+  },
+  {
+    key: "maskSceneId",
+    label: "Mask scene (screen-sized)",
+    type: "scene",
+    defaultValue: "LAST_SCENE",
+    conditions: [{ key: "effect", in: ["mask_grow", "mask_shrink"] }],
+  },
+  {
+    type: "label",
+    label:
       "Runs as a waitable VM function — the script pauses until the transition finishes. Background transitions track the current scroll automatically. All numeric fields accept variables.",
   },
 ];
 
 export const compile = (input, helpers) => {
   const {
-    _stackPushConst, _stackPushScriptValue, _invoke,
+    options, _stackPushConst, _stackPushScriptValue, _invoke,
     _spritesHide, _addComment,
   } = helpers;
 
   const V = (v, d) =>
     v === undefined || v === null ? num(d) : typeof v === "number" ? num(v) : v;
 
+  // Bit-pack two byte-sized script values into one word via RPN:
+  // (hi & 0xff) << 8 | (lo & 0xff). _stackPushScriptValue compiles the tree to
+  // RPN (or folds to a constant when both are constant).
+  const bAND = (a, b) => ({ type: "bAND", valueA: a, valueB: b });
+  const bOR = (a, b) => ({ type: "bOR", valueA: a, valueB: b });
+  const shl = (a, b) => ({ type: "shl", valueA: a, valueB: b });
+  const byte = (v) => bAND(v, num(0xff));
+  const pack = (hi, lo) => bOR(shl(byte(hi), num(8)), byte(lo));
+
   const effect = EFFECT_ID[input.effect] ?? 0;
   const layer = input.layer === "overlay" ? 1 : 0;
   const mode = 0; // fill
-  const p0 = (effect & 0x0f) | (layer << 4) | (mode << 5);
+  const p0 = (effect & 0x1f) | (layer << 5) | (mode << 6);
+
+  // Mask grow/shrink: resolve the mask scene.
+  const isMask = input.effect === "mask_grow" || input.effect === "mask_shrink";
+  let maskSym = 0;
+  let maskBank = 0;
+  if (isMask) {
+    const scenes = (options && options.scenes) || [];
+    const scene = scenes.find((s) => s.id === input.maskSceneId);
+    if (!scene) {
+      throw new Error(
+        "Screen Transition Out: Mask Grow/Shrink needs a valid Mask scene.",
+      );
+    }
+    maskSym = `_${scene.symbol}`;
+    maskBank = `___bank_${scene.symbol}`;
+  }
 
   _addComment(`Screen Transition Out: ${input.effect} (${input.layer || "background"})`);
   if (input.hideSprites !== false) _spritesHide();
 
-  // Push one value per arg slot (each may be a script variable), then invoke the
-  // waitable transition reading the frame from the stack (idx = -argCount).
-  _stackPushConst(p0);                          // 0
-  _stackPushScriptValue(V(input.x, 0));         // 1
-  _stackPushScriptValue(V(input.y, 0));         // 2
-  _stackPushScriptValue(V(input.width, 20));    // 3
-  _stackPushScriptValue(V(input.height, 18));   // 4
-  _stackPushScriptValue(V(input.speed, 1));     // 5
-  _stackPushScriptValue(V(input.hold, 1));      // 6
-  if (input.fill === "white") _stackPushConst(201);      // 7 fill tile
-  else if (input.fill === "custom") _stackPushScriptValue(V(input.customTile, 0));
-  else _stackPushConst(202);
-  _stackPushScriptValue(V(input.cgbPalette, 7));// 8 palette
-  _stackPushConst(0);                          // 9  src_x (unused)
-  _stackPushConst(0);                          // 10 src_y (unused)
-  _stackPushConst(0);                          // 11 scene_bank (unused)
-  _stackPushConst(0);                          // 12 scene_ptr (unused)
-  _invoke("screen_transition_update", 13, -13);
+  // Fill tile as a script value (black/white are consts, custom is a value field).
+  const fillTile =
+    input.fill === "white" ? num(201)
+    : input.fill === "custom" ? V(input.customTile, 0)
+    : num(202);
+
+  // Bit-packed frame (10 slots): value pairs packed via RPN, then invoke.
+  _stackPushConst(p0);                                          // 0 p0
+  _stackPushScriptValue(pack(V(input.x, 0), V(input.y, 0)));    // 1 x|y
+  _stackPushScriptValue(pack(V(input.width, 20), V(input.height, 18))); // 2 w|h
+  _stackPushScriptValue(pack(V(input.speed, 1), V(input.hold, 1)));     // 3 speed|hold
+  _stackPushScriptValue(pack(fillTile, V(input.cgbPalette, 7)));// 4 fill|palette
+  _stackPushConst(0);                                          // 5 src_x|src_y (unused)
+  _stackPushConst(0);                                          // 6 scene_bank (unused)
+  _stackPushConst(0);                                          // 7 scene_ptr (unused)
+  _stackPushConst(maskBank);                                   // 8 mask_bank
+  _stackPushConst(maskSym);                                    // 9 mask_ptr
+  _invoke("screen_transition_update", 10, -10);
 };
 
 // Run after the scene's initial fade-in (named export so the ESM->CJS loader keeps it).

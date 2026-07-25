@@ -16,7 +16,7 @@ effect a few steps per frame and yields in between, so the invoking script
 **pauses until the transition finishes** — exactly like the built-in *Wait* or
 *Camera Move* events — while music and other threads keep running.
 
-This replaces the previous approach of baking every tile write into GBVM
+This replaces the approach of baking every tile write into GBVM
 script. The benefits:
 
 - **Tiny script footprint** — a transition is a handful of `VM_SET_CONST` +
@@ -27,15 +27,35 @@ script. The benefits:
   each frame, so they always line up with the visible screen on scrolled scenes
   (no "follow scroll" toggle needed).
 
-This is now a self-contained **engine plugin** — it no longer depends on the
-Submapping Ex plugin.
+This is a self-contained **engine plugin**
 
 ## Transitions
 
-`wipe_right/left/up/down`, horizontal & vertical curtains (`split_*` close /
-`open_*` open), iris (`iris_in` / `iris_out`), diagonal (`diag_tl` / `diag_br`),
-and a two-pass `checker` dissolve. Pair complements for symmetry (Iris Close out
-→ Iris Open in).
+- `wipe_right/left/up/down`,
+- horizontal & vertical curtains (`split_*` close / `open_*` open)
+- iris (`iris_in` / `iris_out`)
+- diagonal (`diag_tl` / `diag_br`)
+- two-pass `checker` dissolve
+- `snake_h` / `snake_v` — serpentine sweep, one tile per step (use a higher
+  *Steps per frame*, e.g. 6–12, as it covers every tile).
+- `spiral` — serpentine spiral, one tile per step, clockwise from the top-left
+  corner winding inward to the centre (same "use a higher *Steps per frame*"
+  note as the snakes).
+- `blinds_h` / `blinds_v` — venetian blinds: several bars close at once.
+- `four_sq` — chunky 16×16-pixel (2×2 tile) block wipe.
+- `diamond_in` / `diamond_out` — diamond iris (close / open).
+- `clock` — radial sweep from the centre, clockwise from 12 o'clock.
+- `fan4` — four-blade fan / pinwheel (four rotating wedges).
+- `x` — an X (both diagonals) that thickens outward.
+- `noise` — random dissolve, seeded differently each run.
+- `mask_grow` / `mask_shrink` — the reveal order is driven by a **screen-sized
+  mask scene**: each screen tile is revealed by the tile *index* at the matching
+  position in the mask scene, one distinct index per step — so the number of
+  steps equals the mask background's **tileset tile count**. Grow reveals the
+  lowest indices first, Shrink the highest. Draw a gradient in a scene (each
+  step of the gradient a different tile) and it becomes the transition shape.
+  The mask is independent of the fill/reveal content, so it can drive a fill, a
+  this-scene reveal, or a scene copy — just pick the **Mask scene**.
 
 ## Layers
 
@@ -105,14 +125,6 @@ step* waits extra frames between batches (slower).
 Every numeric field (region X/Y/W/H, steps/frames, source X/Y, fill tile id, CGB
 palette) is a **value** field, so it accepts a **variable** or expression as well
 as a constant — the transition reads them at runtime.
-
-## Example project
-
-`ScreenTransitionsExample/` opens in GB Studio 4.3 and auto-plays all 13
-transitions in a single scene, then a scroll-tracked transition, then a
-cross-scene reveal using a Source offset into a second scene. Prebuilt ROM at
-`ScreenTransitionsExample/build/rom/game.gb`. Verified to compile with the GB
-Studio 4.3 CLI.
 
 ## Install
 

@@ -14,13 +14,13 @@
   "collisions": "00168+",
   "autoFadeSpeed": null,
   "symbol": "scene_3",
-  "x": 184,
-  "y": 400,
+  "x": 192,
+  "y": 416,
   "script": [
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_IN",
       "args": {
-        "effect": "open_h",
+        "effect": "mask_shrink",
         "source": "current",
         "layer": "overlay",
         "sceneId": "7119b714-60bc-44e0-9476-565c939e810a",
@@ -34,20 +34,21 @@
         "showSprites": false,
         "x": {
           "type": "number",
-          "value": -16
+          "value": 0
         },
         "y": {
           "type": "number",
-          "value": -16
+          "value": 0
         },
         "width": {
           "type": "number",
-          "value": 31
+          "value": 20
         },
         "height": {
           "type": "number",
-          "value": 31
-        }
+          "value": 18
+        },
+        "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917"
       },
       "id": "322416e1-72a9-4e52-9ee7-ab146797c52f"
     },

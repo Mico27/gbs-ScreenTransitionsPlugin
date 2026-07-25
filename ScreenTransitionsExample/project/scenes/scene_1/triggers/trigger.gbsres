@@ -13,12 +13,15 @@
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_IN",
       "args": {
-        "effect": "iris_out",
+        "effect": "noise",
         "source": "scene",
         "sceneId": "0133ec9c-d768-4321-a729-704edb4f05f9",
         "srcX": 35,
         "srcY": 19,
-        "speed": 4,
+        "speed": {
+          "type": "number",
+          "value": 1
+        },
         "hold": 1,
         "coverFirst": false,
         "coverTile": 202,
@@ -31,7 +34,8 @@
         "y": 0,
         "width": 20,
         "height": 18,
-        "layer": "overlay"
+        "layer": "overlay",
+        "maskSceneId": "0227c6ea-dbfa-43eb-8b4a-342d495f45fb"
       },
       "id": "55dd87bc-f74b-4ef2-bd3c-9e5e294301a7"
     },

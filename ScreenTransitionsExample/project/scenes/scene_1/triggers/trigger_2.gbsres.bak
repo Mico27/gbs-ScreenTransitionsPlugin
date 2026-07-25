@@ -13,12 +13,18 @@
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
       "args": {
-        "effect": "split_h",
+        "effect": "noise",
         "layer": "background",
         "fill": "black",
         "customTile": 0,
-        "speed": 1,
-        "hold": 1,
+        "speed": {
+          "type": "number",
+          "value": 1
+        },
+        "hold": {
+          "type": "number",
+          "value": 1
+        },
         "hideSprites": false,
         "cgbPalette": 7,
         "x": {
@@ -27,7 +33,8 @@
         },
         "y": 0,
         "width": 20,
-        "height": 18
+        "height": 18,
+        "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917"
       },
       "id": "59ccf8e2-48c5-4a25-a825-1bf0dfb3d519"
     },
@@ -48,11 +55,11 @@
         "sceneId": "7119b714-60bc-44e0-9476-565c939e810a",
         "x": {
           "type": "number",
-          "value": 6
+          "value": 8
         },
         "y": {
           "type": "number",
-          "value": 15
+          "value": 16
         },
         "direction": "up",
         "fadeSpeed": 1

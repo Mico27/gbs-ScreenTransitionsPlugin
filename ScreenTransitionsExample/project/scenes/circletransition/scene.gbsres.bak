@@ -1,0 +1,23 @@
+{
+  "_resourceType": "scene",
+  "id": "cad3c295-a063-4a72-adf8-8bee4806f917",
+  "_index": 3,
+  "name": "CircleTransition",
+  "backgroundId": "fe9cd6d5-344c-41f9-b35f-867b0206098c",
+  "tilesetId": "",
+  "width": 20,
+  "height": 18,
+  "type": "TOPDOWN",
+  "colorModeOverride": "none",
+  "paletteIds": [],
+  "spritePaletteIds": [],
+  "collisions": "",
+  "autoFadeSpeed": 1,
+  "symbol": "scene_4",
+  "x": 198.875,
+  "y": 598.5,
+  "script": [],
+  "playerHit1Script": [],
+  "playerHit2Script": [],
+  "playerHit3Script": []
+}
