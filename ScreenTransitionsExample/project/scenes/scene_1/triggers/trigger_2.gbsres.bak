@@ -11,12 +11,26 @@
   "height": 2,
   "script": [
     {
+      "command": "EVENT_SET_VALUE",
+      "args": {
+        "variable": "4",
+        "value": {
+          "type": "number",
+          "value": 4
+        }
+      },
+      "id": "0e2347b8-8a2b-48e9-b419-647388431bfc"
+    },
+    {
       "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
       "args": {
-        "effect": "noise",
+        "effect": "mask_grow",
         "layer": "background",
         "fill": "black",
-        "customTile": 0,
+        "customTile": {
+          "type": "number",
+          "value": 54
+        },
         "speed": {
           "type": "number",
           "value": 1
@@ -34,7 +48,7 @@
         "y": 0,
         "width": 20,
         "height": 18,
-        "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917"
+        "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d"
       },
       "id": "59ccf8e2-48c5-4a25-a825-1bf0dfb3d519"
     },
