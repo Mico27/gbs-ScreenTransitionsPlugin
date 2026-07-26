@@ -27,6 +27,11 @@
       "id": "ffa6d23b-c79c-4732-a871-f187281eddce"
     },
     {
+      "command": "EVENT_IDLE",
+      "args": {},
+      "id": "83ca9e07-2429-4888-a414-50a03a84c21b"
+    },
+    {
       "command": "EVENT_OVERLAY_HIDE",
       "args": {
         "__comment": false

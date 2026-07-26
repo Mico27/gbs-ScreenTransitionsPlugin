@@ -549,14 +549,39 @@ static void tr_overlay_show(void) {
     UBYTE by = (UBYTE)(scroll_y >> 3);
     for (UBYTE ly = 0; ly < 18u; ly++) {
         for (UBYTE lx = 0; lx < 20u; lx++) {
-            UWORD off = (UWORD)(UBYTE)(by + ly) * (UWORD)image_tile_width + (UBYTE)(bx + lx);
-            UBYTE tile = ReadBankedUBYTE(image_ptr + off, image_bank);
+            UBYTE tile;
+            if (metatile_bank) {
+                // metatile scene: resolve visible tile via SRAM map + metatile defs
+#if METATILE_SIZE == METATILE_SIZE_16
+                UWORD tofs = get_metatile_tile(METATILE_MAP_OFFSET(lx + bx, ly + by),
+                                           TILE_Y_OFFSET(ly + by) + TILE_X_OFFSET(lx + bx));
+                tile = ReadBankedUBYTE(metatile_ptr + tofs, metatile_bank);
 #ifdef CGB
-            if (_is_CGB) {
-                UBYTE a = ReadBankedUBYTE(image_attr_ptr + off, image_attr_bank);
-                VBK_REG = 1; set_win_tile_xy(lx, ly, a); VBK_REG = 0;
-            }
+                if (_is_CGB && metatile_attr_bank) {
+                    UBYTE a = ReadBankedUBYTE(metatile_attr_ptr + tofs, metatile_attr_bank);
+                    VBK_REG = 1; set_win_tile_xy(lx, ly, a); VBK_REG = 0;
+                }
 #endif
+#else
+                UBYTE midx = sram_map_data[METATILE_MAP_OFFSET(bx + lx, by + ly)];
+                tile = ReadBankedUBYTE(metatile_ptr + midx, metatile_bank);
+#ifdef CGB
+                if (_is_CGB && metatile_attr_bank) {
+                    UBYTE a = ReadBankedUBYTE(metatile_attr_ptr + midx, metatile_attr_bank);
+                    VBK_REG = 1; set_win_tile_xy(lx, ly, a); VBK_REG = 0;
+                }
+#endif
+#endif
+            } else {
+                UWORD off = (UWORD)(UBYTE)(by + ly) * (UWORD)image_tile_width + (UBYTE)(bx + lx);
+                tile = ReadBankedUBYTE(image_ptr + off, image_bank);
+#ifdef CGB
+                if (_is_CGB) {
+                    UBYTE a = ReadBankedUBYTE(image_attr_ptr + off, image_attr_bank);
+                    VBK_REG = 1; set_win_tile_xy(lx, ly, a); VBK_REG = 0;
+                }
+#endif
+            }
             set_win_tile_xy(lx, ly, tile);
         }
     }

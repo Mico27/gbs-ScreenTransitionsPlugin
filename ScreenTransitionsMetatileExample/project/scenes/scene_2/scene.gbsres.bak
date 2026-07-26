@@ -18,6 +18,15 @@
   "y": 80,
   "script": [
     {
+      "command": "EVENT_LOAD_META_TILES",
+      "args": {
+        "sceneId": "865a1659-4b95-4afd-8efd-e12da16211ae",
+        "matchColor": false,
+        "matchCollision": false
+      },
+      "id": "ffa6d23b-c79c-4732-a871-f187281eddce"
+    },
+    {
       "command": "EVENT_OVERLAY_HIDE",
       "args": {
         "__comment": false

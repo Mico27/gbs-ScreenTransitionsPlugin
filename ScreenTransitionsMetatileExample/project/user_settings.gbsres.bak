@@ -1,7 +1,7 @@
 {
   "_resourceType": "settings",
   "worldScrollX": 14,
-  "worldScrollY": 142,
+  "worldScrollY": 0,
   "zoom": 100,
   "navigatorSplitSizes": [
     837,
@@ -27,6 +27,16 @@
   "debuggerPauseOnScriptChanged": false,
   "debuggerPauseOnWatchedVariableChanged": false,
   "debuggerBreakpoints": [
+    {
+      "scriptEventId": "55dd87bc-f74b-4ef2-bd3c-9e5e294301a7",
+      "context": {
+        "type": "entity",
+        "entityType": "trigger",
+        "entityId": "2486772b-770f-4b38-b9cb-6f2cf08e80c7",
+        "sceneId": "362ab001-34bb-4129-b133-66a0c4c39af0",
+        "scriptKey": "script"
+      }
+    },
     {
       "scriptEventId": "322416e1-72a9-4e52-9ee7-ab146797c52f",
       "context": {
