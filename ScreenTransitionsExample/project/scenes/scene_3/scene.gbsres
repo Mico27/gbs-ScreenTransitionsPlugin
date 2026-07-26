@@ -20,7 +20,7 @@
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_IN",
       "args": {
-        "effect": "mask_shrink",
+        "effect": "mask_grow",
         "source": "current",
         "layer": "overlay",
         "sceneId": "7119b714-60bc-44e0-9476-565c939e810a",
@@ -34,7 +34,7 @@
         "coverFirst": true,
         "coverTile": 202,
         "hideSprites": false,
-        "showSprites": false,
+        "showSprites": true,
         "x": {
           "type": "number",
           "value": 0
@@ -51,7 +51,8 @@
           "type": "number",
           "value": 18
         },
-        "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917"
+        "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917",
+        "direction": "reverse"
       },
       "id": "322416e1-72a9-4e52-9ee7-ab146797c52f"
     },

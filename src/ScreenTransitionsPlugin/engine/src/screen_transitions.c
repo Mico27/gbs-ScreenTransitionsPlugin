@@ -19,33 +19,28 @@
 #include "data_manager.h"
 #include "ui.h"    // win_pos_x/y, win_dest_pos_x/y, MENU_CLOSED_Y
 
-// --- effects ---
+// --- effects --- (ids are stable; the reverse-pair complements — wipe left/up,
+// curtain close, iris/diamond close, diagonal BR, mask shrink — were dropped and
+// are reproduced by the Direction = Reversed option, so their ids are now unused)
 #define E_WIPE_R   0
-#define E_WIPE_L   1
 #define E_WIPE_D   2
-#define E_WIPE_U   3
-#define E_SPLIT_H  4
 #define E_OPEN_H   5
-#define E_SPLIT_V  6
 #define E_OPEN_V   7
-#define E_IRIS_IN  8
 #define E_IRIS_OUT 9
-#define E_DIAG_TL  10
-#define E_DIAG_BR  11
+#define E_DIAG_TL  10   // diagonal, vertical range (front spans top<->bottom, sweeps sideways)
+#define E_DIAG_H   11   // diagonal, horizontal range (front spans left<->right, sweeps down)
 #define E_CHECKER  12
 #define E_SNAKE_H  13
 #define E_SNAKE_V  14
 #define E_BLINDS_H 15
 #define E_BLINDS_V 16
 #define E_FOUR_SQ  17
-#define E_DIAMOND_IN  18
 #define E_DIAMOND_OUT 19
 #define E_CLOCK       20
 #define E_NOISE       21
 #define E_FAN4        22
 #define E_X           23
 #define E_MASK_GROW   24
-#define E_MASK_SHRINK 25
 #define E_SPIRAL      26
 
 #define BLIND_BAND 3u   // venetian-blind band size (tiles)
@@ -63,6 +58,9 @@
 // --- global state for the current transition ---
 UBYTE tr_effect, tr_layer, tr_mode;
 UBYTE tr_x0, tr_y0, tr_w, tr_h; // region (screen-relative tiles)
+UBYTE tr_reverse;      // play steps in reverse order (flips direction / CW<->CCW)
+UBYTE tr_angle;        // initial angle offset 0-255 (clock / fan phase)
+UBYTE tr_cx, tr_cy;    // centre point (0xFF from event = auto = region centre); resolved in tr_begin
 UBYTE tr_speed, tr_hold; // steps drawn per active frame / frames between batches
 UBYTE tr_fill_tile, tr_fill_attr;
 UBYTE tr_src_x, tr_src_y; // source offset in the other scene (copy mode)
@@ -74,9 +72,22 @@ UBYTE tr_map_w, tr_mask_w;
 const UBYTE * tr_map_ptr, * tr_attr_ptr, * tr_mask_ptr;
 UBYTE tr_map_bank, tr_attr_bank, tr_mask_bank;
 UWORD tr_mask_ntiles; // = tileset tile count = number of grow/shrink steps
+// scene object pointers set directly by the event (copy / mask modes) — resolved
+// into the tilemap pointers above on start.
+const void * tr_scene_ptr; UBYTE tr_scene_bank;
+const void * tr_maskscene_ptr; UBYTE tr_maskscene_bank;
 
 
 static UWORD tr_perim(void);   // fwd decl (tr_calc_total below uses it before its definition)
+
+// Diagonal skew from tr_angle: signed offset of the front line across the given
+// span `dim`. 0 => +(dim-1), 128 => 0, 255 => -(dim-1). Kept in [-(dim-1),dim-1]
+// so the front stays one tile per row/column. Vertical variant passes tr_h
+// (offset across the height); horizontal variant passes tr_w (across the width).
+static int tr_diag_skew(UBYTE dim) {
+    int m = (int)dim - 1;
+    return m - (2 * m * (int)tr_angle) / 255;
+}
 
 // Deterministic per-tile hash (0..255), varied per run by seed.
 static UBYTE tr_hash(UBYTE x, UBYTE y, UBYTE seed) {
@@ -91,29 +102,33 @@ static UBYTE tr_hash(UBYTE x, UBYTE y, UBYTE seed) {
 static UWORD tr_calc_total(void) {
     UBYTE W = tr_w, H = tr_h;
     switch (tr_effect) {
-        case E_WIPE_R: case E_WIPE_L:   return W;
-        case E_WIPE_D: case E_WIPE_U:   return H;
-        case E_SPLIT_H: case E_OPEN_H:  return (W + 1u) >> 1;
-        case E_SPLIT_V: case E_OPEN_V:  return (H + 1u) >> 1;
-        case E_IRIS_IN: case E_IRIS_OUT: return (((W < H) ? W : H) + 1u) >> 1;
-        case E_DIAG_TL: case E_DIAG_BR: return (UWORD)W + H - 1u;
+        case E_WIPE_R:                  return W;
+        case E_WIPE_D:                  return H;
+        case E_OPEN_H:                  return (W + 1u) >> 1;
+        case E_OPEN_V:                  return (H + 1u) >> 1;
+        case E_IRIS_OUT: {
+            UBYTE rx = (tr_cx > (UBYTE)(W - 1u - tr_cx)) ? tr_cx : (UBYTE)(W - 1u - tr_cx);
+            UBYTE ry = (tr_cy > (UBYTE)(H - 1u - tr_cy)) ? tr_cy : (UBYTE)(H - 1u - tr_cy);
+            return (UWORD)((rx > ry ? rx : ry) + 1u);   // Chebyshev reach from centre
+        }
+        case E_DIAG_TL: { int sk = tr_diag_skew(tr_h); return (UWORD)(W + (sk < 0 ? -sk : sk)); }
+        case E_DIAG_H:  { int sk = tr_diag_skew(tr_w); return (UWORD)(H + (sk < 0 ? -sk : sk)); }
         case E_CHECKER:                 return (UWORD)W << 1;
         case E_SNAKE_H: case E_SNAKE_V: return (UWORD)W * H;
         case E_SPIRAL:                  return (UWORD)W * H;
         case E_BLINDS_H:                return (H < BLIND_BAND) ? H : BLIND_BAND;
         case E_BLINDS_V:                return (W < BLIND_BAND) ? W : BLIND_BAND;
         case E_FOUR_SQ:                 return (UWORD)((W + 1u) >> 1) * ((H + 1u) >> 1);
-        case E_DIAMOND_IN: case E_DIAMOND_OUT: {
-            UBYTE cx = W >> 1, cy = H >> 1;
-            UBYTE mx = (cx > (UBYTE)(W - 1u - cx)) ? cx : (UBYTE)(W - 1u - cx);
-            UBYTE my = (cy > (UBYTE)(H - 1u - cy)) ? cy : (UBYTE)(H - 1u - cy);
+        case E_DIAMOND_OUT: {
+            UBYTE mx = (tr_cx > (UBYTE)(W - 1u - tr_cx)) ? tr_cx : (UBYTE)(W - 1u - tr_cx);
+            UBYTE my = (tr_cy > (UBYTE)(H - 1u - tr_cy)) ? tr_cy : (UBYTE)(H - 1u - tr_cy);
             return (UWORD)mx + my + 1u;
         }
         case E_CLOCK:                   return tr_perim();                    // one radius per step
         case E_NOISE:                   return NOISE_BINS;
         case E_FAN4:                    return (UWORD)((tr_perim() + 3u) >> 2); // ceil(perim/4)
         case E_X:                       return (UWORD)((W >> 1) + 1u);   // half the width (linear thicken)
-        case E_MASK_GROW: case E_MASK_SHRINK: return tr_mask_ntiles;
+        case E_MASK_GROW:               return tr_mask_ntiles;
         default:                        return W;
     }
 }
@@ -204,7 +219,7 @@ static void tr_line(BYTE x0, BYTE y0, BYTE x1, BYTE y1) {
 // top, then down the right, etc.). Callers add their own phase offset to `idx`.
 static void tr_ray(UWORD idx) {
     UBYTE W = tr_w, H = tr_h;
-    UBYTE cx = W >> 1, cy = H >> 1;
+    UBYTE cx = tr_cx, cy = tr_cy;   // centre (resolved in tr_begin; may be offset)
     UWORD perim = (UWORD)2u * W + 2u * H; perim = (perim > 4u) ? (UWORD)(perim - 4u) : 1u;
     UWORD n = idx % perim;
     BYTE ex, ey;
@@ -226,38 +241,39 @@ static void tr_draw_step(UWORD k) {
     UBYTE W = tr_w, H = tr_h;
     switch (tr_effect) {
         case E_WIPE_R: { UBYTE c = (UBYTE)k;         for (UBYTE y = 0; y < H; y++) tr_put(c, y); } break;
-        case E_WIPE_L: { UBYTE c = W - 1u - (UBYTE)k; for (UBYTE y = 0; y < H; y++) tr_put(c, y); } break;
         case E_WIPE_D: { UBYTE r = (UBYTE)k;         for (UBYTE x = 0; x < W; x++) tr_put(x, r); } break;
-        case E_WIPE_U: { UBYTE r = H - 1u - (UBYTE)k; for (UBYTE x = 0; x < W; x++) tr_put(x, r); } break;
-        case E_SPLIT_H:
-        case E_OPEN_H: {
+        case E_OPEN_H: { // curtain from centre outward (Reversed = close)
             UBYTE half = (W + 1u) >> 1;
-            UBYTE c = (tr_effect == E_OPEN_H) ? (half - 1u - (UBYTE)k) : (UBYTE)k;
+            UBYTE c = half - 1u - (UBYTE)k;
             for (UBYTE y = 0; y < H; y++) { tr_put(c, y); if ((W - 1u - c) != c) tr_put(W - 1u - c, y); }
         } break;
-        case E_SPLIT_V:
         case E_OPEN_V: {
             UBYTE half = (H + 1u) >> 1;
-            UBYTE r = (tr_effect == E_OPEN_V) ? (half - 1u - (UBYTE)k) : (UBYTE)k;
+            UBYTE r = half - 1u - (UBYTE)k;
             for (UBYTE x = 0; x < W; x++) { tr_put(x, r); if ((H - 1u - r) != r) tr_put(x, H - 1u - r); }
         } break;
-        case E_IRIS_IN:
-        case E_IRIS_OUT: {
-            UBYTE maxd = (((W < H) ? W : H) + 1u) >> 1;
-            UBYTE d = (tr_effect == E_IRIS_OUT) ? (maxd - 1u - (UBYTE)k) : (UBYTE)k;
-            UBYTE left = d, right = W - 1u - d, top = d, bottom = H - 1u - d;
-            if (left > right || top > bottom) break;
-            for (UBYTE x = left; x <= right; x++) { tr_put(x, top); if (bottom != top) tr_put(x, bottom); }
-            if (bottom > top + 1u)
-                for (UBYTE y = top + 1u; y < bottom; y++) { tr_put(left, y); if (right != left) tr_put(right, y); }
-        } break;
-        case E_DIAG_TL:
-        case E_DIAG_BR: {
-            UWORD smax = (UWORD)W + H - 2u;
-            UWORD s = (tr_effect == E_DIAG_BR) ? (smax - k) : k;
-            for (UBYTE x = 0; x < W; x++) {
-                if (s >= x) { UWORD y = s - x; if (y < H) tr_put(x, (UBYTE)y); }
+        case E_IRIS_OUT: { // Chebyshev (box) rings from the centre outward (Reversed = close)
+            BYTE cx = (BYTE)tr_cx, cy = (BYTE)tr_cy;
+            BYTE d = (BYTE)k;
+            BYTE l = (BYTE)(cx - d), r = (BYTE)(cx + d), t = (BYTE)(cy - d), b = (BYTE)(cy + d);
+            for (BYTE x = l; x <= r; x++) {
+                if ((UBYTE)x < W) { if ((UBYTE)t < H) tr_put((UBYTE)x, (UBYTE)t); if (b != t && (UBYTE)b < H) tr_put((UBYTE)x, (UBYTE)b); }
             }
+            for (BYTE y = t; y <= b; y++) {
+                if ((UBYTE)y < H) { if ((UBYTE)l < W) tr_put((UBYTE)l, (UBYTE)y); if (r != l && (UBYTE)r < W) tr_put((UBYTE)r, (UBYTE)y); }
+            }
+        } break;
+        case E_DIAG_TL: { // vertical range: front spans top<->bottom, swept sideways.
+            // tr_angle tilts it: 0 = "/", 128 = vertical, 255 = "\". One tr_line per step.
+            int sk = tr_diag_skew(tr_h);
+            int t = (sk < 0 ? sk : 0) + (int)k;          // top-edge x for this step
+            tr_line((BYTE)t, 0, (BYTE)(t - sk), (BYTE)(H - 1u));
+        } break;
+        case E_DIAG_H: { // horizontal range: front spans left<->right, swept downward.
+            // tr_angle tilts it: 0 = "/", 128 = horizontal, 255 = "\". One tr_line per step.
+            int sk = tr_diag_skew(tr_w);
+            int u = (sk < 0 ? sk : 0) + (int)k;          // left-edge y for this step
+            tr_line(0, (BYTE)u, (BYTE)(W - 1u), (BYTE)(u - sk));
         } break;
         case E_CHECKER: {
             UBYTE p  = (UBYTE)(k / W);
@@ -320,13 +336,9 @@ static void tr_draw_step(UWORD k) {
                     if (xx < W && yy < H) tr_put(xx, yy);
                 }
         } break;
-        case E_DIAMOND_IN:
-        case E_DIAMOND_OUT: { // diamond iris: draw the ring outline as 4 slope-1 Bresenham edges
-            BYTE cx = (BYTE)(W >> 1), cy = (BYTE)(H >> 1);
-            UBYTE mx = (cx > (BYTE)(W - 1u - (W >> 1))) ? (UBYTE)cx : (UBYTE)(W - 1u - (W >> 1));
-            UBYTE my = (cy > (BYTE)(H - 1u - (H >> 1))) ? (UBYTE)cy : (UBYTE)(H - 1u - (H >> 1));
-            UWORD maxd = (UWORD)mx + my;
-            BYTE d = (BYTE)((tr_effect == E_DIAMOND_OUT) ? k : (maxd - k));
+        case E_DIAMOND_OUT: { // diamond iris from the centre outward (Reversed = close)
+            BYTE cx = (BYTE)tr_cx, cy = (BYTE)tr_cy;
+            BYTE d = (BYTE)k;
             // tips: N(cx,cy-d) E(cx+d,cy) S(cx,cy+d) W(cx-d,cy); edges connect them at 45deg
             tr_line(cx, (BYTE)(cy - d), (BYTE)(cx + d), cy);
             tr_line((BYTE)(cx + d), cy, cx, (BYTE)(cy + d));
@@ -334,15 +346,17 @@ static void tr_draw_step(UWORD k) {
             tr_line((BYTE)(cx - d), cy, cx, (BYTE)(cy - d));
         } break;
         case E_CLOCK: { // radial clock sweep: one perimeter point per step, line centre->edge
-            tr_ray((UWORD)(k + (W >> 1)));   // +cx phase so step 0 = 12 o'clock, clockwise
+            UWORD perim = tr_perim();
+            UWORD phase = (UWORD)(W >> 1) + (UWORD)(((UWORD)tr_angle * perim) >> 8); // top-centre + angle
+            tr_ray((UWORD)(k + phase));
         } break;
         case E_FAN4: { // 4-blade fan: 4 radii sweeping contiguous quarter-arcs in parallel
             UWORD perim = tr_perim();
             UWORD total = (UWORD)((perim + 3u) >> 2);   // ceil(perim/4) = steps
-            UBYTE cx = W >> 1;
+            UWORD phase = (UWORD)(W >> 1) + (UWORD)(((UWORD)tr_angle * perim) >> 8);
             for (UBYTE b = 0; b < 4u; b++) {
                 UWORD idx = k + (UWORD)b * total;        // blade b sweeps its own quarter block
-                if (idx < perim) tr_ray(idx + cx);
+                if (idx < perim) tr_ray(idx + phase);
             }
         } break;
         case E_NOISE: { // random-looking dissolve (hash binned)
@@ -361,9 +375,8 @@ static void tr_draw_step(UWORD k) {
                 tr_line((BYTE)(wm - kk), 0, (BYTE)-kk, hm);   // anti -k
             }
         } break;
-        case E_MASK_GROW:
-        case E_MASK_SHRINK: { // reveal by the mask scene's tile index (one index per step)
-            UWORD target = (tr_effect == E_MASK_GROW) ? k : (tr_mask_ntiles - 1u - k);
+        case E_MASK_GROW: { // reveal by the mask scene's tile index, low first (Reversed = high first)
+            UWORD target = k;
             for (UBYTE y = 0; y < H; y++) {
                 UWORD row = (UWORD)(UBYTE)(tr_y0 + y) * (UWORD)tr_mask_w;
                 for (UBYTE x = 0; x < W; x++) {
@@ -401,37 +414,25 @@ static void tr_overlay_show(void) {
     win_pos_y = win_dest_pos_y = 0; // show at top-left, instantly
 }
 
-// Argument frame, bit-packed (two byte-fields per word where possible, so a
-// 15-value frame fits in 10 slots). The event packs the value fields with RPN
-// (`(hi & 0xff) << 8 | (lo & 0xff)`); we unpack here.
-//   0 p0 = effect | layer<<5 | mode<<6
-//   1 x<<8 | y      2 w<<8 | h      3 speed<<8 | hold
-//   4 fill_tile<<8 | cgb_palette    5 src_x<<8 | src_y
-//   6 scene_bank    7 scene_ptr     8 mask_bank    9 mask_ptr
-static void tr_init(UWORD * sf) {
-    UWORD p0 = sf[0];
-    tr_effect = p0 & 0x1Fu;       // effect 0-31 (5 bits)
-    tr_layer  = (p0 >> 5) & 1u;
-    tr_mode   = (p0 >> 6) & 3u;
-    tr_x0 = (UBYTE)(sf[1] >> 8);   tr_y0 = (UBYTE)(sf[1] & 0xFFu);
-    tr_w  = (UBYTE)(sf[2] >> 8);   tr_h  = (UBYTE)(sf[2] & 0xFFu);
+// Compute derived state for a transition whose parameter globals were already
+// set DIRECTLY by the event (tr_effect / tr_layer / tr_mode / tr_x0.. / tr_fill_*
+// / tr_src_* and, for copy/mask modes, tr_scene_* / tr_maskscene_*). Called once
+// on the first (start) frame — no stack frame is passed anymore.
+static void tr_begin(void) {
     if (!tr_w) tr_w = 1; if (tr_w > 32u) tr_w = 32u;
     if (!tr_h) tr_h = 1; if (tr_h > 32u) tr_h = 32u;
-    tr_speed = (UBYTE)(sf[3] >> 8); tr_hold = (UBYTE)(sf[3] & 0xFFu);
-    if (!tr_speed) tr_speed = 1;     if (!tr_hold) tr_hold = 1;
-    tr_fill_tile = (UBYTE)(sf[4] >> 8);
-    tr_fill_attr = 0x80u | (UBYTE)(sf[4] & 0x07u); // CGB priority + palette (low 3 bits)
-    tr_src_x = (UBYTE)(sf[5] >> 8); tr_src_y = (UBYTE)(sf[5] & 0xFFu);
+    if (!tr_speed) tr_speed = 1;
+    if (!tr_hold) tr_hold = 1;
+    if (tr_cx == 0xFFu) tr_cx = tr_w >> 1;   // 0xFF sentinel = auto centre
+    if (tr_cy == 0xFFu) tr_cy = tr_h >> 1;
 
     if (tr_layer == L_BKG) { tr_base_x = (UBYTE)(scroll_x >> 3); tr_base_y = (UBYTE)(scroll_y >> 3); }
     else { tr_base_x = 0; tr_base_y = 0; tr_overlay_show(); }
 
     tr_attr_ptr = 0;
     if (tr_mode == M_COPY) {
-        UBYTE sbank = sf[6] & 0xFFu;
-        const scene_t * sptr = (const scene_t *)sf[7];
         scene_t scn;
-        MemcpyBanked(&scn, sptr, sizeof(scn), sbank);
+        MemcpyBanked(&scn, tr_scene_ptr, sizeof(scn), tr_scene_bank);
         background_t bkg;
         MemcpyBanked(&bkg, scn.background.ptr, sizeof(bkg), scn.background.bank);
         tr_map_w = bkg.width;
@@ -441,11 +442,9 @@ static void tr_init(UWORD * sf) {
 
     if (tr_effect == E_NOISE) {
         tr_noise_seed = (UBYTE)DIV_REG;   // vary the dissolve each run
-    } else if (tr_effect == E_MASK_GROW || tr_effect == E_MASK_SHRINK) {
-        UBYTE mbank = sf[8] & 0xFFu;
-        const scene_t * mptr = (const scene_t *)sf[9];
+    } else if (tr_effect == E_MASK_GROW) {
         scene_t scn;
-        MemcpyBanked(&scn, mptr, sizeof(scn), mbank);
+        MemcpyBanked(&scn, tr_maskscene_ptr, sizeof(scn), tr_maskscene_bank);
         background_t bkg;
         MemcpyBanked(&bkg, scn.background.ptr, sizeof(bkg), scn.background.bank);
         tr_mask_w = bkg.width;
@@ -460,9 +459,11 @@ static void tr_init(UWORD * sf) {
     tr_hold_ctr = 0;
 }
 
-// Waitable VM function (VM_INVOKE target).
+// Waitable VM function (VM_INVOKE target). Parameters live in the globals above,
+// set by the event before the invoke; no stack frame is used.
 UBYTE screen_transition_update(void * THIS, UBYTE start, UWORD * stack_frame) OLDCALL BANKED {
-    if (start) tr_init(stack_frame);
+    (void)stack_frame;
+    if (start) tr_begin();
 
     if (tr_hold_ctr) {
         tr_hold_ctr--;
@@ -471,7 +472,8 @@ UBYTE screen_transition_update(void * THIS, UBYTE start, UWORD * stack_frame) OL
     }
 
     for (UBYTE s = 0; s < tr_speed && tr_step < tr_total; s++) {
-        tr_draw_step(tr_step);
+        // reverse = play the steps back-to-front (flips direction / CW<->CCW)
+        tr_draw_step(tr_reverse ? (UWORD)(tr_total - 1u - tr_step) : tr_step);
         tr_step++;
     }
 

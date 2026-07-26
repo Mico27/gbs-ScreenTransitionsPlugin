@@ -57,7 +57,7 @@
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_IN",
       "args": {
-        "effect": "wipe_left",
+        "effect": "wipe_right",
         "source": "current",
         "layer": "overlay",
         "sceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
@@ -98,7 +98,8 @@
           "value": 18
         },
         "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
-        "__collapse": true
+        "__collapse": true,
+        "direction": "reverse"
       },
       "id": "b2c0e385-2c98-4a30-8623-e568fe0a9bec"
     },
@@ -149,7 +150,7 @@
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_IN",
       "args": {
-        "effect": "wipe_up",
+        "effect": "wipe_down",
         "source": "current",
         "layer": "overlay",
         "sceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
@@ -190,14 +191,15 @@
           "value": 18
         },
         "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
-        "__collapse": true
+        "__collapse": true,
+        "direction": "reverse"
       },
       "id": "40ef894c-a20c-49a6-8a1b-29add76488ce"
     },
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
       "args": {
-        "effect": "split_h",
+        "effect": "open_h",
         "layer": "background",
         "fill": "black",
         "customTile": {
@@ -234,7 +236,8 @@
           "value": 18
         },
         "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
-        "__collapse": true
+        "__collapse": true,
+        "direction": "reverse"
       },
       "id": "34cfc9ad-de8e-4500-a3aa-97fa291b92bd"
     },
@@ -289,7 +292,7 @@
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
       "args": {
-        "effect": "split_v",
+        "effect": "open_v",
         "layer": "background",
         "fill": "black",
         "customTile": {
@@ -326,7 +329,8 @@
           "value": 18
         },
         "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
-        "__collapse": true
+        "__collapse": true,
+        "direction": "reverse"
       },
       "id": "df686a1c-f863-463a-933a-b16bf8a60d85"
     },
@@ -381,7 +385,7 @@
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
       "args": {
-        "effect": "iris_in",
+        "effect": "iris_out",
         "layer": "background",
         "fill": "black",
         "customTile": {
@@ -418,7 +422,8 @@
           "value": 18
         },
         "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
-        "__collapse": true
+        "__collapse": true,
+        "direction": "reverse"
       },
       "id": "3c6baad2-9f5d-4b22-a6b0-747d9aebb29d"
     },
@@ -517,7 +522,7 @@
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_IN",
       "args": {
-        "effect": "diag_br",
+        "effect": "diag_tl",
         "source": "current",
         "layer": "overlay",
         "sceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
@@ -558,7 +563,8 @@
           "value": 18
         },
         "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
-        "__collapse": true
+        "__collapse": true,
+        "direction": "reverse"
       },
       "id": "e1d62685-af7a-44e7-b71c-0c5e838e4c4f"
     },
@@ -885,7 +891,7 @@
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_IN",
       "args": {
-        "effect": "diamond_in",
+        "effect": "diamond_out",
         "source": "current",
         "layer": "overlay",
         "sceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
@@ -926,7 +932,8 @@
           "value": 18
         },
         "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
-        "__collapse": true
+        "__collapse": true,
+        "direction": "reverse"
       },
       "id": "f153b9dd-8849-4705-9de4-46ab04e675ef"
     },
@@ -1209,7 +1216,7 @@
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
       "args": {
-        "effect": "mask_shrink",
+        "effect": "mask_grow",
         "layer": "background",
         "fill": "black",
         "customTile": {
@@ -1246,14 +1253,15 @@
           "value": 18
         },
         "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917",
-        "__collapse": true
+        "__collapse": true,
+        "direction": "reverse"
       },
       "id": "e9ae70d6-d1ba-416b-b02c-6c5ec12e917a"
     },
     {
       "command": "PT_EVENT_SCREEN_TRANSITION_IN",
       "args": {
-        "effect": "mask_shrink",
+        "effect": "mask_grow",
         "source": "current",
         "layer": "overlay",
         "sceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
@@ -1294,7 +1302,8 @@
           "value": 18
         },
         "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917",
-        "__collapse": true
+        "__collapse": true,
+        "direction": "reverse"
       },
       "id": "f8dcb1ce-2756-4bcd-a4cb-e9d258149df2"
     }

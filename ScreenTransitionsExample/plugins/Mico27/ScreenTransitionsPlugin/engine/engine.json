@@ -1,5 +1,19 @@
 {
     "version": "4.3.0-e0",
-    "fields": [],
+    "fields": [
+        { "key": "tr_x0", "label": "Transition region X", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 0, "runtimeOnly": true },
+        { "key": "tr_y0", "label": "Transition region Y", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 0, "runtimeOnly": true },
+        { "key": "tr_w", "label": "Transition region W", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 20, "runtimeOnly": true },
+        { "key": "tr_h", "label": "Transition region H", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 18, "runtimeOnly": true },
+        { "key": "tr_speed", "label": "Transition steps per frame", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 1, "runtimeOnly": true },
+        { "key": "tr_hold", "label": "Transition frames per step", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 1, "runtimeOnly": true },
+        { "key": "tr_fill_tile", "label": "Transition fill tile", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 0, "runtimeOnly": true },
+        { "key": "tr_fill_attr", "label": "Transition fill attr", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 0, "runtimeOnly": true },
+        { "key": "tr_src_x", "label": "Transition source X", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 0, "runtimeOnly": true },
+        { "key": "tr_src_y", "label": "Transition source Y", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 0, "runtimeOnly": true },
+        { "key": "tr_angle", "label": "Transition angle", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 0, "runtimeOnly": true },
+        { "key": "tr_cx", "label": "Transition centre X", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 255, "runtimeOnly": true },
+        { "key": "tr_cy", "label": "Transition centre Y", "group": "Screen Transitions", "type": "number", "cType": "UBYTE", "defaultValue": 255, "runtimeOnly": true }
+    ],
     "sceneTypes": []
 }

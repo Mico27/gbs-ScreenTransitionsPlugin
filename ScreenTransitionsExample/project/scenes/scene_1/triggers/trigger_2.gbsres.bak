@@ -11,17 +11,6 @@
   "height": 2,
   "script": [
     {
-      "command": "EVENT_SET_VALUE",
-      "args": {
-        "variable": "4",
-        "value": {
-          "type": "number",
-          "value": 4
-        }
-      },
-      "id": "0e2347b8-8a2b-48e9-b419-647388431bfc"
-    },
-    {
       "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
       "args": {
         "effect": "mask_grow",

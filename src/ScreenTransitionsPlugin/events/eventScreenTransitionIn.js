@@ -10,46 +10,47 @@ export const autoLabel = (fetchArg, input) => {
   return `Screen Transition In: ${input.effect || "wipe_right"} (this scene)`;
 };
 
+// One canonical effect per reverse-pair; use Direction = Reversed for the
+// complement (e.g. Wipe reversed = left/up, Curtain reversed = close, Iris
+// reversed = close, Diagonal reversed = from bottom-right, Mask reversed = shrink).
 const EFFECTS = [
-  ["wipe_right", "Wipe → Right"],
-  ["wipe_left", "Wipe ← Left"],
-  ["wipe_down", "Wipe ↓ Down"],
-  ["wipe_up", "Wipe ↑ Up"],
-  ["split_h", "Curtain Close (horizontal)"],
-  ["open_h", "Curtain Open (horizontal)"],
-  ["split_v", "Curtain Close (vertical)"],
-  ["open_v", "Curtain Open (vertical)"],
-  ["iris_in", "Iris Close (box in)"],
-  ["iris_out", "Iris Open (box out)"],
-  ["diag_tl", "Diagonal ↘"],
-  ["diag_br", "Diagonal ↖"],
+  ["wipe_right", "Wipe (horizontal)"],
+  ["wipe_down", "Wipe (vertical)"],
+  ["open_h", "Curtain (horizontal)"],
+  ["open_v", "Curtain (vertical)"],
+  ["iris_out", "Iris (box)"],
+  ["diag_tl", "Diagonal (vertical)"],
+  ["diag_h", "Diagonal (horizontal)"],
   ["checker", "Checkerboard"],
   ["snake_h", "Snake (horizontal)"],
   ["snake_v", "Snake (vertical)"],
-  ["spiral", "Spiral (snake, inward)"],
+  ["spiral", "Spiral (snake)"],
   ["blinds_h", "Blinds (horizontal bars)"],
   ["blinds_v", "Blinds (vertical bars)"],
   ["four_sq", "4-Square (chunky blocks)"],
-  ["diamond_in", "Diamond Close"],
-  ["diamond_out", "Diamond Open"],
+  ["diamond_out", "Diamond"],
   ["clock", "Clock (radial sweep)"],
   ["noise", "Random Noise"],
   ["fan4", "4-Blade Fan"],
   ["x", "X (cross)"],
-  ["mask_grow", "Mask Grow (scene as mask)"],
-  ["mask_shrink", "Mask Shrink (scene as mask)"],
+  ["mask_grow", "Mask (scene as mask)"],
 ];
+// Ids are stable (gaps left where reverse-pair complements were removed).
 const EFFECT_ID = {
-  wipe_right: 0, wipe_left: 1, wipe_down: 2, wipe_up: 3,
-  split_h: 4, open_h: 5, split_v: 6, open_v: 7,
-  iris_in: 8, iris_out: 9, diag_tl: 10, diag_br: 11, checker: 12,
-  snake_h: 13, snake_v: 14, blinds_h: 15, blinds_v: 16, four_sq: 17,
-  diamond_in: 18, diamond_out: 19,
-  clock: 20, noise: 21, fan4: 22, x: 23, mask_grow: 24, mask_shrink: 25,
-  spiral: 26,
+  wipe_right: 0, wipe_down: 2,
+  open_h: 5, open_v: 7,
+  iris_out: 9, diag_tl: 10, diag_h: 11, checker: 12,
+  snake_h: 13, snake_v: 14, spiral: 26,
+  blinds_h: 15, blinds_v: 16, four_sq: 17,
+  diamond_out: 19,
+  clock: 20, noise: 21, fan4: 22, x: 23, mask_grow: 24,
 };
 
 const num = (value) => ({ type: "number", value });
+
+// Effects that support an angular start offset / a custom centre point.
+const ANGLE_FX = ["clock", "fan4", "diag_tl", "diag_h"];
+const CENTER_FX = ["iris_out", "diamond_out", "clock", "fan4"];
 
 export const fields = [
   {
@@ -190,6 +191,48 @@ export const fields = [
     ],
   },
   {
+    key: "direction",
+    label: "Direction",
+    description:
+      "Plays the effect in reverse — flips a wipe to the opposite side, an iris close to open, and a clock/fan/spiral to counter-clockwise.",
+    type: "select",
+    options: [
+      ["forward", "Normal / Clockwise"],
+      ["reverse", "Reversed / Counter-clockwise"],
+    ],
+    defaultValue: "forward",
+  },
+  {
+    key: "angle",
+    label: "Initial angle (0-255)",
+    description:
+      "Rotates the sweep direction. Clock/fan: 0 = 12 o'clock. Diagonal: 0 = down-right, 128 = vertical, 255 = down-left.",
+    type: "value",
+    min: 0,
+    max: 255,
+    defaultValue: num(0),
+    conditions: [{ key: "effect", in: ANGLE_FX }],
+  },
+  {
+    key: "customCenter",
+    label: "Custom centre point",
+    description: "Move the pivot/centre of the effect off the region centre.",
+    type: "checkbox",
+    defaultValue: false,
+    conditions: [{ key: "effect", in: CENTER_FX }],
+  },
+  {
+    type: "group",
+    fields: [
+      { key: "centerX", label: "Centre X", type: "value", width: "50%", min: 0, max: 31, defaultValue: num(10) },
+      { key: "centerY", label: "Centre Y", type: "value", width: "50%", min: 0, max: 31, defaultValue: num(9) },
+    ],
+    conditions: [
+      { key: "customCenter", eq: true },
+      { key: "effect", in: CENTER_FX },
+    ],
+  },
+  {
     key: "hideSprites",
     label: "Hide sprites during transition",
     description:
@@ -227,41 +270,32 @@ export const fields = [
     type: "label",
     label:
       "Mask Grow/Shrink: the mask scene's tile values (0-255) set the reveal order — lower tiles first (Grow), so a drawn gradient becomes the transition shape. This is separate from the reveal content above.",
-    conditions: [{ key: "effect", in: ["mask_grow", "mask_shrink"] }],
+    conditions: [{ key: "effect", in: ["mask_grow"] }],
   },
   {
     key: "maskSceneId",
     label: "Mask scene (screen-sized)",
     type: "scene",
     defaultValue: "LAST_SCENE",
-    conditions: [{ key: "effect", in: ["mask_grow", "mask_shrink"] }],
+    conditions: [{ key: "effect", in: ["mask_grow"] }],
   },
 ];
 
 export const compile = (input, helpers) => {
   const {
     options,
-    _stackPushConst, _stackPushScriptValue, _stackPop, _invoke,
-    _callNative, _spritesHide, _spritesShow, _setConstMemInt8, _fadeIn, _addComment,
+    _stackPushConst, _setConstMemInt16, engineFieldSetToScriptValue, _stackPop,
+    _invoke, _callNative, _spritesHide, _spritesShow, _setConstMemInt8, _fadeIn,
+    _addComment,
   } = helpers;
 
   const V = (v, d) =>
     v === undefined || v === null ? num(d) : typeof v === "number" ? num(v) : v;
 
-  // Bit-pack two byte-sized script values into one word via RPN:
-  // (hi & 0xff) << 8 | (lo & 0xff). _stackPushScriptValue compiles the tree to
-  // RPN (or folds to a constant when both are constant).
-  const bAND = (a, b) => ({ type: "bAND", valueA: a, valueB: b });
-  const bOR = (a, b) => ({ type: "bOR", valueA: a, valueB: b });
-  const shl = (a, b) => ({ type: "shl", valueA: a, valueB: b });
-  const byte = (v) => bAND(v, num(0xff));
-  const pack = (hi, lo) => bOR(shl(byte(hi), num(8)), byte(lo));
-
   const effect = EFFECT_ID[input.effect] ?? 0;
   const isScene = input.source === "scene";
   const layer = isScene ? (input.layer === "background" ? 0 : 1) : 0;
   const mode = isScene ? 2 : 1; // 2 copy, 1 refresh
-  const p0 = (effect & 0x1f) | (layer << 5) | (mode << 6);
 
   // Resolve scene symbol for copy mode.
   let sceneSym = 0;
@@ -279,7 +313,7 @@ export const compile = (input, helpers) => {
   }
 
   // Mask grow/shrink: resolve the mask scene (separate from the copy source).
-  const isMask = input.effect === "mask_grow" || input.effect === "mask_shrink";
+  const isMask = input.effect === "mask_grow";
   let maskSym = 0;
   let maskBank = 0;
   if (isMask) {
@@ -318,22 +352,40 @@ export const compile = (input, helpers) => {
     _fadeIn(true);
   }
 
-  // Bit-packed frame (10 slots): value pairs packed via RPN, then invoke.
-  _stackPushConst(p0);                                          // 0 p0
-  _stackPushScriptValue(pack(V(input.x, 0), V(input.y, 0)));    // 1 x|y
-  _stackPushScriptValue(pack(V(input.width, 20), V(input.height, 18))); // 2 w|h
-  _stackPushScriptValue(pack(V(input.speed, 1), V(input.hold, 1)));     // 3 speed|hold
-  _stackPushConst(0);                                          // 4 fill|palette (unused for reveal)
-  if (isScene) {
-    _stackPushScriptValue(pack(V(input.srcX, 0), V(input.srcY, 0)));    // 5 src_x|src_y
-  } else {
-    _stackPushConst(0);                                        // 5 (unused)
+  // Set the transition state globals directly (control words as consts, value
+  // fields via engineFieldSetToScriptValue so they accept variables/expressions).
+  _setConstMemInt8("tr_effect", effect);
+  _setConstMemInt8("tr_layer", layer);
+  _setConstMemInt8("tr_mode", mode);
+  engineFieldSetToScriptValue("tr_x0", V(input.x, 0));
+  engineFieldSetToScriptValue("tr_y0", V(input.y, 0));
+  engineFieldSetToScriptValue("tr_w", V(input.width, 20));
+  engineFieldSetToScriptValue("tr_h", V(input.height, 18));
+  engineFieldSetToScriptValue("tr_speed", V(input.speed, 1));
+  engineFieldSetToScriptValue("tr_hold", V(input.hold, 1));
+  // direction (reverse step order), angle offset, and centre point
+  _setConstMemInt8("tr_reverse", input.direction === "reverse" ? 1 : 0);
+  if (ANGLE_FX.includes(input.effect)) {
+    engineFieldSetToScriptValue("tr_angle", V(input.angle, 0));
   }
-  _stackPushConst(sceneBank);                                  // 6 scene_bank
-  _stackPushConst(sceneSym);                                   // 7 scene_ptr
-  _stackPushConst(maskBank);                                   // 8 mask_bank
-  _stackPushConst(maskSym);                                    // 9 mask_ptr
-  _invoke("screen_transition_update", 10, -10);
+  if (CENTER_FX.includes(input.effect) && input.customCenter) {
+    engineFieldSetToScriptValue("tr_cx", V(input.centerX, 10));
+    engineFieldSetToScriptValue("tr_cy", V(input.centerY, 9));
+  } else {
+    _setConstMemInt8("tr_cx", 0xff); // auto centre
+    _setConstMemInt8("tr_cy", 0xff);
+  }
+  if (isScene) {
+    engineFieldSetToScriptValue("tr_src_x", V(input.srcX, 0));
+    engineFieldSetToScriptValue("tr_src_y", V(input.srcY, 0));
+    _setConstMemInt16("tr_scene_ptr", sceneSym);
+    _setConstMemInt8("tr_scene_bank", sceneBank);
+  }
+  if (isMask) {
+    _setConstMemInt16("tr_maskscene_ptr", maskSym);
+    _setConstMemInt8("tr_maskscene_bank", maskBank);
+  }
+  _invoke("screen_transition_update", 0, 0);
 
   if (coverFirst) {
     _setConstMemInt8("fade_frames_per_step", 3); // restore a sane fade speed
