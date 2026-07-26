@@ -180,10 +180,39 @@ from the compiled ROM, so you only pay for what you use. If a script still uses 
 transition whose type is disabled, the project fails to build with a clear error
 naming the effect — enable the type (or pick another effect) and rebuild.
 
+## Compatibility with other engine plugins
+
+The plugin adds no stock engine files of its own, so it never *conflicts* with
+other plugins — but a few plugins change how the background is addressed or
+stored, which the transition code has to account for. GB Studio's `engineAlt`
+mechanism automatically swaps in a matching build of `screen_transitions.c` when
+one of these plugins is detected (via `engineAltRules` in `plugin.json`); nothing
+to configure:
+
+| Also installed | Variant (`engineAlt/…`) | What it changes |
+|---|---|---|
+| **Screen Scroll Plugin** | `Scr` | These plugins shift the visible background inside VRAM by `bkg_offset_x/y` (hardware scroll = `draw_scroll + TILE_TO_PX(bkg_offset)`). The variant adds that offset to background tile **writes** so the effect still lines up with the screen. |
+| **Continuous Scene Plugin** | `Cont` | Same offset fix as `Scr` (identical source). |
+| **Metatile Plugin** | `M` | A metatile scene stores a metatile-*index* map, so the *reveal this scene* (REFRESH) path resolves each visible tile through the live SRAM metatile map + metatile definitions (mirrors `load_metatile_row`), for both `METATILE_SIZE_8` and `_16`. Fill, overlay, and copy/mask from **normal** scenes are unchanged. |
+| **Metatile + Screen Scroll** | `M_Scr` | Combined build: applies the `bkg_offset` VRAM write shift **and** the metatile REFRESH resolution together (matches Metatile's own combined engine — read the map at logical coords, write VRAM at `x + bkg_offset`). Selected automatically when both plugins are present. |
+| **Metatile + Continuous Scene** | `M_Cont` | Same combined build as `M_Scr` (identical source). |
+
+The combined rules are listed before the single-plugin rules, so when Metatile is
+installed alongside an offset-scroll plugin the combined variant wins.
+
+Notes and limits:
+
+- **Metatile** copy/mask *sources* should be **normal** scenes, not metatile
+  scenes — the copy/mask read path expects a raw tilemap. Fill and revealing the
+  current (metatile) scene are fully supported.
+- Other plugin **triple**-combinations aren't shipped as dedicated variants; ask
+  if you need one.
+
 ## Install
 
 Copy `src/ScreenTransitionsPlugin` into your project's `plugins/` folder, then
-restart GB Studio.
+restart GB Studio. The `engineAlt` variants ship inside that folder and are
+selected automatically — no extra steps.
 
 ## Notes
 

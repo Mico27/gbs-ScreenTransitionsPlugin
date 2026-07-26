@@ -1,0 +1,11 @@
+{
+  "_resourceType": "tileset",
+  "id": "596fb3c3-0fbb-45f6-94f4-7cbd90377bc1",
+  "name": "Pokemon_Overworld_Tileset",
+  "symbol": "tileset_pokemon_overworld_t",
+  "width": 16,
+  "height": 6,
+  "imageWidth": 128,
+  "imageHeight": 48,
+  "filename": "Pokemon_Overworld_Tileset.png"
+}

@@ -1,0 +1,12 @@
+{
+  "_resourceType": "background",
+  "id": "5e068f24-f575-41f3-84e6-6d7ab9661d9d",
+  "name": "star_transition_test",
+  "symbol": "bg_star_transition_test",
+  "tileColors": "",
+  "filename": "star_transition_test.png",
+  "width": 20,
+  "height": 18,
+  "imageWidth": 160,
+  "imageHeight": 144
+}

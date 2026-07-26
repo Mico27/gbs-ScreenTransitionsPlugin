@@ -1,0 +1,11 @@
+{
+  "_resourceType": "tileset",
+  "id": "3542b8d7-78ab-4ac3-bcd0-eb55360b8a07",
+  "name": "Pokemon_House_Tileset",
+  "symbol": "tileset_pokemon_house_tiles",
+  "width": 16,
+  "height": 6,
+  "imageWidth": 128,
+  "imageHeight": 48,
+  "filename": "Pokemon_House_Tileset.png"
+}

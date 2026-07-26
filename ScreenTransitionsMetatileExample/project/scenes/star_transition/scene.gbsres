@@ -1,0 +1,23 @@
+{
+  "_resourceType": "scene",
+  "id": "87940546-56d5-4cc9-9769-e64831f8008d",
+  "_index": 4,
+  "name": "Star transition",
+  "backgroundId": "5e068f24-f575-41f3-84e6-6d7ab9661d9d",
+  "tilesetId": "39ce07e6-0b85-44a2-9b10-1045c8dc7774",
+  "width": 20,
+  "height": 18,
+  "type": "TOPDOWN",
+  "colorModeOverride": "none",
+  "paletteIds": [],
+  "spritePaletteIds": [],
+  "collisions": "",
+  "autoFadeSpeed": 1,
+  "symbol": "scene_6",
+  "x": 424,
+  "y": 704,
+  "script": [],
+  "playerHit1Script": [],
+  "playerHit2Script": [],
+  "playerHit3Script": []
+}

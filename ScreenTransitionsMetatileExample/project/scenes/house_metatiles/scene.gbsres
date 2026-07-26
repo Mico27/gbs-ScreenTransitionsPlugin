@@ -1,0 +1,23 @@
+{
+  "_resourceType": "scene",
+  "id": "98ec5536-33cf-4187-a087-6dbcb85b6b90",
+  "_index": 7,
+  "name": "House Metatiles",
+  "backgroundId": "f3f65cc2-b686-4d5e-b04d-1af7f8d8e2b3",
+  "tilesetId": "3542b8d7-78ab-4ac3-bcd0-eb55360b8a07",
+  "width": 32,
+  "height": 16,
+  "type": "TOPDOWN",
+  "colorModeOverride": "none",
+  "paletteIds": [],
+  "spritePaletteIds": [],
+  "collisions": "00200+",
+  "autoFadeSpeed": 1,
+  "symbol": "scene_8",
+  "x": 992,
+  "y": 864,
+  "script": [],
+  "playerHit1Script": [],
+  "playerHit2Script": [],
+  "playerHit3Script": []
+}

@@ -75,7 +75,6 @@ UBYTE tr_cx, tr_cy;    // centre point (0xFF from event = auto = region centre);
 UBYTE tr_speed, tr_hold; // steps drawn per active frame / frames between batches
 UBYTE tr_fill_tile, tr_fill_attr;
 UBYTE tr_src_x, tr_src_y; // source offset in the other scene (copy mode)
-UBYTE tr_base_x, tr_base_y; // scroll offset in tiles (bkg) so we track the visible screen
 UWORD tr_step, tr_total;
 UWORD tr_min, tr_max; // min frame = initial tr_step; max frame = tr_total (0 = full; clamped to tr_calc_total())
 UBYTE tr_hold_ctr;
@@ -183,8 +182,11 @@ static UWORD tr_calc_total(void) {
 
 // Draw a single region-local tile (lx,ly) using the current mode/layer.
 static void tr_put(UBYTE lx, UBYTE ly) {
-    UBYTE sx = tr_base_x + tr_x0 + lx;
-    UBYTE sy = tr_base_y + tr_y0 + ly;
+    UBYTE sx = tr_x0 + lx;
+    UBYTE sy = tr_y0 + ly;
+    // background tracks the live scroll (read here per tile instead of caching it
+    // in globals); the overlay/window is not scrolled.
+    if (tr_layer == L_BKG) { sx += (UBYTE)(scroll_x >> 3); sy += (UBYTE)(scroll_y >> 3); }
     UBYTE vx = sx & 31u;
     UBYTE vy = sy & 31u;
 
@@ -514,8 +516,7 @@ static void tr_begin(void) {
     if (tr_cy == 0xFFu) tr_cy = tr_h >> 1;
     // (custom centres are already clamped into the region by the event)
 
-    if (tr_layer == L_BKG) { tr_base_x = (UBYTE)(scroll_x >> 3); tr_base_y = (UBYTE)(scroll_y >> 3); }
-    else { tr_base_x = 0; tr_base_y = 0; tr_overlay_show(); }
+    if (tr_layer != L_BKG) tr_overlay_show(); // overlay primes+shows the window; bkg tracks scroll live in tr_put
 
     tr_attr_ptr = 0;
     if (tr_mode == M_COPY) {

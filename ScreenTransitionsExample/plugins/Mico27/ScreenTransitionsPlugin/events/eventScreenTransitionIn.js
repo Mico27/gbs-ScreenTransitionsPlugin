@@ -347,7 +347,7 @@ export const compile = (input, helpers) => {
     _stackPushConst, _setConstMemInt16, _setMemInt8ToVariable, _setMemInt8, _setMemInt16,
     _stackPushScriptValue, _stackPop,
     _invoke, _callNative, _spritesHide, _spritesShow, _setConstMemInt8, _fadeIn,
-    _addComment,
+    _addComment, _idle,
   } = helpers;
 
   const V = (v, d) =>
@@ -467,6 +467,7 @@ export const compile = (input, helpers) => {
   // Cover the screen and instantly restore the palette before revealing, so
   // the transition survives a scene change (screen was faded out).
   if (coverFirst) {
+    _idle();
     _stackPushConst(0x80 | 7); // cover attr (CGB priority + palette 7)
     _stackPushConst(coverTile);
     _callNative("vm_screen_cover");

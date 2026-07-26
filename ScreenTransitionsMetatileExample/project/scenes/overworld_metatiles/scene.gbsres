@@ -1,0 +1,23 @@
+{
+  "_resourceType": "scene",
+  "id": "865a1659-4b95-4afd-8efd-e12da16211ae",
+  "_index": 6,
+  "name": "Overworld Metatiles",
+  "backgroundId": "f7e42554-3f91-43a6-bc8d-2ce96d244d63",
+  "tilesetId": "596fb3c3-0fbb-45f6-94f4-7cbd90377bc1",
+  "width": 32,
+  "height": 16,
+  "type": "TOPDOWN",
+  "colorModeOverride": "none",
+  "paletteIds": [],
+  "spritePaletteIds": [],
+  "collisions": "00200+",
+  "autoFadeSpeed": 1,
+  "symbol": "scene_7",
+  "x": 992,
+  "y": 704,
+  "script": [],
+  "playerHit1Script": [],
+  "playerHit2Script": [],
+  "playerHit3Script": []
+}

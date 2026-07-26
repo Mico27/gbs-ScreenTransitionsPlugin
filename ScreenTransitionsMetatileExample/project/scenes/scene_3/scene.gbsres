@@ -1,0 +1,119 @@
+{
+  "_resourceType": "scene",
+  "id": "7119b714-60bc-44e0-9476-565c939e810a",
+  "_index": 2,
+  "name": "Scene 3",
+  "backgroundId": "1455c03b-7de6-4521-af5e-75ea0cd120a9",
+  "tilesetId": "3542b8d7-78ab-4ac3-bcd0-eb55360b8a07",
+  "width": 20,
+  "height": 18,
+  "type": "TOPDOWN",
+  "colorModeOverride": "none",
+  "paletteIds": [],
+  "spritePaletteIds": [],
+  "collisions": "",
+  "autoFadeSpeed": null,
+  "symbol": "scene_3",
+  "x": 192,
+  "y": 416,
+  "script": [
+    {
+      "command": "EVENT_LOAD_META_TILES",
+      "args": {
+        "sceneId": "98ec5536-33cf-4187-a087-6dbcb85b6b90",
+        "matchColor": false,
+        "matchCollision": false
+      },
+      "id": "4d8160fe-0c09-46e9-a15f-f995d838bee1"
+    },
+    {
+      "command": "PT_EVENT_SCREEN_TRANSITION_IN",
+      "args": {
+        "effect": "mask_grow",
+        "source": "current",
+        "layer": "overlay",
+        "sceneId": "7119b714-60bc-44e0-9476-565c939e810a",
+        "srcX": 0,
+        "srcY": 0,
+        "speed": {
+          "type": "number",
+          "value": 1
+        },
+        "hold": 1,
+        "coverFirst": true,
+        "coverTile": 202,
+        "hideSprites": false,
+        "showSprites": true,
+        "x": {
+          "type": "number",
+          "value": 0
+        },
+        "y": {
+          "type": "number",
+          "value": 0
+        },
+        "width": {
+          "type": "number",
+          "value": 20
+        },
+        "height": {
+          "type": "number",
+          "value": 18
+        },
+        "maskSceneId": "f1d95f82-77cd-4677-93d9-627bd6beaa10",
+        "direction": "reverse",
+        "customCenter": true,
+        "centerX": {
+          "type": "add",
+          "valueA": {
+            "type": "property",
+            "target": "player",
+            "property": "xpos"
+          },
+          "valueB": {
+            "type": "number",
+            "value": 1
+          }
+        },
+        "centerY": {
+          "type": "add",
+          "valueA": {
+            "type": "property",
+            "target": "player",
+            "property": "ypos"
+          },
+          "valueB": {
+            "type": "number",
+            "value": 2
+          }
+        },
+        "centerAbsolute": true
+      },
+      "id": "322416e1-72a9-4e52-9ee7-ab146797c52f"
+    },
+    {
+      "command": "EVENT_ACTOR_MOVE_RELATIVE",
+      "args": {
+        "__section": "movement",
+        "actorId": "$self$",
+        "x": {
+          "type": "number",
+          "value": 0
+        },
+        "y": {
+          "type": "number",
+          "value": -2
+        },
+        "collideWith": [
+          "walls"
+        ],
+        "lockDirection": [],
+        "moveType": "horizontal"
+      },
+      "id": "f434e916-6cb6-4e38-845d-2351a10a7e7e"
+    }
+  ],
+  "playerHit1Script": [],
+  "playerHit2Script": [],
+  "playerHit3Script": []
+}

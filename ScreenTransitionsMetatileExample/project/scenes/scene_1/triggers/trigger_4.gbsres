@@ -1,0 +1,841 @@
+{
+  "_resourceType": "trigger",
+  "id": "7daa52d6-5990-463a-8bc1-f6b2034eef50",
+  "name": "",
+  "prefabId": "",
+  "x": 20,
+  "y": 0,
+  "symbol": "trigger_5",
+  "prefabScriptOverrides": {},
+  "width": 4,
+  "height": 4,
+  "script": [
+    {
+      "command": "EVENT_GROUP",
+      "args": {
+        "__label": "Draw pokeball"
+      },
+      "children": {
+        "true": [
+          {
+            "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
+            "args": {
+              "effect": "mask_grow",
+              "layer": "background",
+              "fill": "black",
+              "customTile": {
+                "type": "number",
+                "value": 0
+              },
+              "speed": {
+                "type": "number",
+                "value": 1
+              },
+              "hold": {
+                "type": "number",
+                "value": 1
+              },
+              "hideSprites": false,
+              "cgbPalette": {
+                "type": "number",
+                "value": 7
+              },
+              "x": {
+                "type": "number",
+                "value": 0
+              },
+              "y": {
+                "type": "number",
+                "value": 0
+              },
+              "width": {
+                "type": "number",
+                "value": 20
+              },
+              "height": {
+                "type": "number",
+                "value": 18
+              },
+              "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917",
+              "__collapse": true,
+              "direction": "forward",
+              "maxFrame": {
+                "type": "number",
+                "value": 3
+              },
+              "minFrame": {
+                "type": "number",
+                "value": 0
+              }
+            },
+            "id": "1f78fbf6-4df4-4f75-b43c-b6ed7359e2e5"
+          },
+          {
+            "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
+            "args": {
+              "effect": "open_v",
+              "layer": "background",
+              "fill": "black",
+              "customTile": {
+                "type": "number",
+                "value": 0
+              },
+              "speed": {
+                "type": "number",
+                "value": 1
+              },
+              "hold": {
+                "type": "number",
+                "value": 1
+              },
+              "minFrame": {
+                "type": "number",
+                "value": 0
+              },
+              "maxFrame": {
+                "type": "number",
+                "value": 1
+              },
+              "direction": "forward",
+              "angle": {
+                "type": "number",
+                "value": 0
+              },
+              "customCenter": false,
+              "centerAbsolute": false,
+              "centerX": {
+                "type": "number",
+                "value": 10
+              },
+              "centerY": {
+                "type": "number",
+                "value": 9
+              },
+              "hideSprites": false,
+              "cgbPalette": {
+                "type": "number",
+                "value": 7
+              },
+              "x": {
+                "type": "number",
+                "value": 0
+              },
+              "y": {
+                "type": "number",
+                "value": 0
+              },
+              "width": {
+                "type": "number",
+                "value": 20
+              },
+              "height": {
+                "type": "number",
+                "value": 18
+              },
+              "maskSceneId": "f1d95f82-77cd-4677-93d9-627bd6beaa10",
+              "__collapse": true
+            },
+            "id": "5c2eb756-f696-440c-afe8-313fbff35019"
+          },
+          {
+            "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
+            "args": {
+              "effect": "mask_grow",
+              "layer": "background",
+              "fill": "black",
+              "customTile": {
+                "type": "number",
+                "value": 0
+              },
+              "speed": {
+                "type": "number",
+                "value": 1
+              },
+              "hold": {
+                "type": "number",
+                "value": 1
+              },
+              "hideSprites": false,
+              "cgbPalette": {
+                "type": "number",
+                "value": 7
+              },
+              "x": {
+                "type": "number",
+                "value": 0
+              },
+              "y": {
+                "type": "number",
+                "value": 0
+              },
+              "width": {
+                "type": "number",
+                "value": 20
+              },
+              "height": {
+                "type": "number",
+                "value": 18
+              },
+              "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917",
+              "__collapse": true,
+              "direction": "reverse",
+              "maxFrame": {
+                "type": "number",
+                "value": 0
+              },
+              "minFrame": {
+                "type": "number",
+                "value": 7
+              }
+            },
+            "id": "a553984c-6b63-4144-8772-ca7c037f44d1"
+          },
+          {
+            "command": "PT_EVENT_SCREEN_TRANSITION_IN",
+            "args": {
+              "effect": "mask_grow",
+              "source": "current",
+              "layer": "overlay",
+              "sceneId": "f1d95f82-77cd-4677-93d9-627bd6beaa10",
+              "srcX": {
+                "type": "number",
+                "value": 0
+              },
+              "srcY": {
+                "type": "number",
+                "value": 0
+              },
+              "speed": {
+                "type": "number",
+                "value": 1
+              },
+              "hold": {
+                "type": "number",
+                "value": 1
+              },
+              "coverFirst": false,
+              "coverTile": 202,
+              "minFrame": {
+                "type": "number",
+                "value": 9
+              },
+              "maxFrame": {
+                "type": "number",
+                "value": 0
+              },
+              "direction": "reverse",
+              "angle": {
+                "type": "number",
+                "value": 0
+              },
+              "customCenter": false,
+              "centerAbsolute": false,
+              "centerX": {
+                "type": "number",
+                "value": 10
+              },
+              "centerY": {
+                "type": "number",
+                "value": 9
+              },
+              "hideSprites": false,
+              "showSprites": false,
+              "x": {
+                "type": "number",
+                "value": 0
+              },
+              "y": {
+                "type": "number",
+                "value": 0
+              },
+              "width": {
+                "type": "number",
+                "value": 20
+              },
+              "height": {
+                "type": "number",
+                "value": 18
+              },
+              "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917",
+              "__collapse": true
+            },
+            "id": "aa3cdf5d-775c-4527-946d-8f3059663c5a"
+          },
+          {
+            "command": "EVENT_LOOP_FOR",
+            "args": {
+              "variable": "L0",
+              "from": {
+                "type": "number",
+                "value": 0
+              },
+              "comparison": "<=",
+              "to": {
+                "type": "number",
+                "value": 2
+              },
+              "operation": "+=",
+              "value": {
+                "type": "number",
+                "value": 1
+              },
+              "__collapse": false
+            },
+            "children": {
+              "true": [
+                {
+                  "command": "EVENT_IF_COLOR_SUPPORTED",
+                  "args": {
+                    "__collapseElse": false
+                  },
+                  "children": {
+                    "true": [],
+                    "false": [
+                      {
+                        "command": "EVENT_GROUP",
+                        "args": {
+                          "__label": "Flash color"
+                        },
+                        "children": {
+                          "true": [
+                            {
+                              "command": "EVENT_SET_PALETTE_COLORS",
+                              "args": {
+                                "is_gbc": false,
+                                "is_sprite": false,
+                                "palette_idx": {
+                                  "type": "number",
+                                  "value": 0
+                                },
+                                "color0": {
+                                  "type": "number",
+                                  "value": 1
+                                },
+                                "color1": {
+                                  "type": "number",
+                                  "value": 1
+                                },
+                                "color2": {
+                                  "type": "number",
+                                  "value": 2
+                                },
+                                "color3": {
+                                  "type": "number",
+                                  "value": 3
+                                },
+                                "commit": true,
+                                "__collapse": true
+                              },
+                              "id": "36ddd72d-f6d1-474f-bc94-9fb13ba4ea1b"
+                            },
+                            {
+                              "command": "EVENT_WAIT",
+                              "args": {
+                                "time": {
+                                  "type": "number",
+                                  "value": 0.5
+                                },
+                                "frames": {
+                                  "type": "number",
+                                  "value": 4
+                                },
+                                "units": "frames",
+                                "__collapse": true
+                              },
+                              "id": "e9326f50-6885-4119-a815-59e56d185b51"
+                            },
+                            {
+                              "command": "EVENT_SET_PALETTE_COLORS",
+                              "args": {
+                                "is_gbc": false,
+                                "is_sprite": false,
+                                "palette_idx": {
+                                  "type": "number",
+                                  "value": 0
+                                },
+                                "color0": {
+                                  "type": "number",
+                                  "value": 1
+                                },
+                                "color1": {
+                                  "type": "number",
+                                  "value": 2
+                                },
+                                "color2": {
+                                  "type": "number",
+                                  "value": 2
+                                },
+                                "color3": {
+                                  "type": "number",
+                                  "value": 3
+                                },
+                                "commit": true,
+                                "__collapse": true
+                              },
+                              "id": "87f82b6a-866c-4a7b-bc9a-046ca7ae09f4"
+                            },
+                            {
+                              "command": "EVENT_WAIT",
+                              "args": {
+                                "time": {
+                                  "type": "number",
+                                  "value": 0.5
+                                },
+                                "frames": {
+                                  "type": "number",
+                                  "value": 4
+                                },
+                                "units": "frames",
+                                "__collapse": true
+                              },
+                              "id": "09a74543-326e-459f-b205-93092dcedd8b"
+                            },
+                            {
+                              "command": "EVENT_SET_PALETTE_COLORS",
+                              "args": {
+                                "is_gbc": false,
+                                "is_sprite": false,
+                                "palette_idx": {
+                                  "type": "number",
+                                  "value": 0
+                                },
+                                "color0": {
+                                  "type": "number",
+                                  "value": 2
+                                },
+                                "color1": {
+                                  "type": "number",
+                                  "value": 2
+                                },
+                                "color2": {
+                                  "type": "number",
+                                  "value": 3
+                                },
+                                "color3": {
+                                  "type": "number",
+                                  "value": 3
+                                },
+                                "commit": true,
+                                "__collapse": true
+                              },
+                              "id": "074b6979-d154-45f7-a627-b497a1175929"
+                            },
+                            {
+                              "command": "EVENT_WAIT",
+                              "args": {
+                                "time": {
+                                  "type": "number",
+                                  "value": 0.5
+                                },
+                                "frames": {
+                                  "type": "number",
+                                  "value": 4
+                                },
+                                "units": "frames",
+                                "__collapse": true
+                              },
+                              "id": "de544561-4c4b-442b-96c1-b76254dd46ce"
+                            },
+                            {
+                              "command": "EVENT_SET_PALETTE_COLORS",
+                              "args": {
+                                "is_gbc": false,
+                                "is_sprite": false,
+                                "palette_idx": {
+                                  "type": "number",
+                                  "value": 0
+                                },
+                                "color0": {
+                                  "type": "number",
+                                  "value": 2
+                                },
+                                "color1": {
+                                  "type": "number",
+                                  "value": 3
+                                },
+                                "color2": {
+                                  "type": "number",
+                                  "value": 3
+                                },
+                                "color3": {
+                                  "type": "number",
+                                  "value": 3
+                                },
+                                "commit": true,
+                                "__collapse": true
+                              },
+                              "id": "ddf97429-b63c-43b1-89f4-54a67a136275"
+                            },
+                            {
+                              "command": "EVENT_WAIT",
+                              "args": {
+                                "time": {
+                                  "type": "number",
+                                  "value": 0.5
+                                },
+                                "frames": {
+                                  "type": "number",
+                                  "value": 4
+                                },
+                                "units": "frames",
+                                "__collapse": true
+                              },
+                              "id": "2b581aeb-8b43-42f6-830f-f2e230cd46cf"
+                            },
+                            {
+                              "command": "EVENT_SET_PALETTE_COLORS",
+                              "args": {
+                                "is_gbc": false,
+                                "is_sprite": false,
+                                "palette_idx": {
+                                  "type": "number",
+                                  "value": 0
+                                },
+                                "color0": {
+                                  "type": "number",
+                                  "value": 2
+                                },
+                                "color1": {
+                                  "type": "number",
+                                  "value": 2
+                                },
+                                "color2": {
+                                  "type": "number",
+                                  "value": 3
+                                },
+                                "color3": {
+                                  "type": "number",
+                                  "value": 3
+                                },
+                                "commit": true,
+                                "__collapse": true
+                              },
+                              "id": "a6b83385-b35d-4f2c-9bc5-3e45d285695e"
+                            },
+                            {
+                              "command": "EVENT_WAIT",
+                              "args": {
+                                "time": {
+                                  "type": "number",
+                                  "value": 0.5
+                                },
+                                "frames": {
+                                  "type": "number",
+                                  "value": 4
+                                },
+                                "units": "frames",
+                                "__collapse": true
+                              },
+                              "id": "02e4e8c9-c60a-4249-9651-62e6c98ba2f1"
+                            },
+                            {
+                              "command": "EVENT_SET_PALETTE_COLORS",
+                              "args": {
+                                "is_gbc": false,
+                                "is_sprite": false,
+                                "palette_idx": {
+                                  "type": "number",
+                                  "value": 0
+                                },
+                                "color0": {
+                                  "type": "number",
+                                  "value": 1
+                                },
+                                "color1": {
+                                  "type": "number",
+                                  "value": 2
+                                },
+                                "color2": {
+                                  "type": "number",
+                                  "value": 2
+                                },
+                                "color3": {
+                                  "type": "number",
+                                  "value": 3
+                                },
+                                "commit": true,
+                                "__collapse": true
+                              },
+                              "id": "97278542-e5bb-4530-a3f1-a34b2bf8e365"
+                            },
+                            {
+                              "command": "EVENT_WAIT",
+                              "args": {
+                                "time": {
+                                  "type": "number",
+                                  "value": 0.5
+                                },
+                                "frames": {
+                                  "type": "number",
+                                  "value": 4
+                                },
+                                "units": "frames",
+                                "__collapse": true
+                              },
+                              "id": "622fcfab-c77b-455a-8860-c484fcfc7496"
+                            },
+                            {
+                              "command": "EVENT_SET_PALETTE_COLORS",
+                              "args": {
+                                "is_gbc": false,
+                                "is_sprite": false,
+                                "palette_idx": {
+                                  "type": "number",
+                                  "value": 0
+                                },
+                                "color0": {
+                                  "type": "number",
+                                  "value": 1
+                                },
+                                "color1": {
+                                  "type": "number",
+                                  "value": 1
+                                },
+                                "color2": {
+                                  "type": "number",
+                                  "value": 2
+                                },
+                                "color3": {
+                                  "type": "number",
+                                  "value": 3
+                                },
+                                "commit": true,
+                                "__collapse": true
+                              },
+                              "id": "94cf8733-0dda-458b-bb1c-9d921daa6d8a"
+                            },
+                            {
+                              "command": "EVENT_WAIT",
+                              "args": {
+                                "time": {
+                                  "type": "number",
+                                  "value": 0.5
+                                },
+                                "frames": {
+                                  "type": "number",
+                                  "value": 4
+                                },
+                                "units": "frames",
+                                "__collapse": true
+                              },
+                              "id": "fb896d73-ba66-4a5e-856e-01fe3903951d"
+                            },
+                            {
+                              "command": "EVENT_SET_PALETTE_COLORS",
+                              "args": {
+                                "is_gbc": false,
+                                "is_sprite": false,
+                                "palette_idx": {
+                                  "type": "number",
+                                  "value": 0
+                                },
+                                "color0": {
+                                  "type": "number",
+                                  "value": 0
+                                },
+                                "color1": {
+                                  "type": "number",
+                                  "value": 1
+                                },
+                                "color2": {
+                                  "type": "number",
+                                  "value": 2
+                                },
+                                "color3": {
+                                  "type": "number",
+                                  "value": 3
+                                },
+                                "commit": true,
+                                "__collapse": true
+                              },
+                              "id": "e344511f-8998-47c9-aba2-bd860d6f8857"
+                            },
+                            {
+                              "command": "EVENT_WAIT",
+                              "args": {
+                                "time": {
+                                  "type": "number",
+                                  "value": 0.5
+                                },
+                                "frames": {
+                                  "type": "number",
+                                  "value": 4
+                                },
+                                "units": "frames",
+                                "__collapse": true
+                              },
+                              "id": "91007dfb-16c2-4f6b-a727-b03008339a99"
+                            }
+                          ]
+                        },
+                        "id": "301a2d1e-11d0-4549-ad78-a8afe5d6a04d"
+                      }
+                    ]
+                  },
+                  "id": "7ef7bac0-ff9c-4515-8988-71a6f79bd0fe"
+                }
+              ]
+            },
+            "id": "5a80e535-eabd-4158-a485-33eaf018dbe5"
+          },
+          {
+            "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
+            "args": {
+              "effect": "clock",
+              "layer": "background",
+              "fill": "black",
+              "customTile": {
+                "type": "number",
+                "value": 0
+              },
+              "speed": {
+                "type": "number",
+                "value": 1
+              },
+              "hold": {
+                "type": "number",
+                "value": 1
+              },
+              "minFrame": {
+                "type": "number",
+                "value": 0
+              },
+              "maxFrame": {
+                "type": "number",
+                "value": 0
+              },
+              "direction": "forward",
+              "angle": {
+                "type": "number",
+                "value": 0
+              },
+              "customCenter": false,
+              "centerAbsolute": false,
+              "centerX": {
+                "type": "number",
+                "value": 10
+              },
+              "centerY": {
+                "type": "number",
+                "value": 9
+              },
+              "hideSprites": true,
+              "cgbPalette": {
+                "type": "number",
+                "value": 7
+              },
+              "x": {
+                "type": "number",
+                "value": 0
+              },
+              "y": {
+                "type": "number",
+                "value": 0
+              },
+              "width": {
+                "type": "number",
+                "value": 20
+              },
+              "height": {
+                "type": "number",
+                "value": 18
+              },
+              "maskSceneId": "f1d95f82-77cd-4677-93d9-627bd6beaa10",
+              "__collapse": false
+            },
+            "id": "66d737af-5b58-414b-9f24-7c5dcd3f824f"
+          },
+          {
+            "command": "EVENT_WAIT",
+            "args": {
+              "time": {
+                "type": "number",
+                "value": 1
+              },
+              "frames": {
+                "type": "number",
+                "value": 1
+              },
+              "__collapse": true
+            },
+            "id": "8d09169f-3b05-459c-a7c8-eb06f6b6a7b4"
+          },
+          {
+            "command": "PT_EVENT_SCREEN_TRANSITION_IN",
+            "args": {
+              "effect": "clock",
+              "source": "current",
+              "layer": "overlay",
+              "sceneId": "f1d95f82-77cd-4677-93d9-627bd6beaa10",
+              "srcX": {
+                "type": "number",
+                "value": 0
+              },
+              "srcY": {
+                "type": "number",
+                "value": 0
+              },
+              "speed": {
+                "type": "number",
+                "value": 1
+              },
+              "hold": {
+                "type": "number",
+                "value": 1
+              },
+              "coverFirst": false,
+              "coverTile": 202,
+              "minFrame": {
+                "type": "number",
+                "value": 0
+              },
+              "maxFrame": {
+                "type": "number",
+                "value": 0
+              },
+              "direction": "forward",
+              "angle": {
+                "type": "number",
+                "value": 0
+              },
+              "customCenter": false,
+              "centerAbsolute": false,
+              "centerX": {
+                "type": "number",
+                "value": 10
+              },
+              "centerY": {
+                "type": "number",
+                "value": 9
+              },
+              "hideSprites": true,
+              "showSprites": true,
+              "x": {
+                "type": "number",
+                "value": 0
+              },
+              "y": {
+                "type": "number",
+                "value": 0
+              },
+              "width": {
+                "type": "number",
+                "value": 20
+              },
+              "height": {
+                "type": "number",
+                "value": 18
+              },
+              "maskSceneId": "f1d95f82-77cd-4677-93d9-627bd6beaa10",
+              "__collapse": false
+            },
+            "id": "2ad7993e-7cd7-4e39-aa73-fe8d5e87da57"
+          }
+        ]
+      },
+      "id": "55e46a93-8d3c-4a4d-8b0e-92559d247a95"
+    }
+  ],
+  "leaveScript": [],
+  "_index": 3
+}

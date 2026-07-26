@@ -1,0 +1,11 @@
+{
+  "_resourceType": "tileset",
+  "id": "39ce07e6-0b85-44a2-9b10-1045c8dc7774",
+  "name": "gray_gradient",
+  "symbol": "tileset_gray_gradient",
+  "width": 13,
+  "height": 1,
+  "imageWidth": 104,
+  "imageHeight": 8,
+  "filename": "gray_gradient.png"
+}

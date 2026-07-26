@@ -1,0 +1,23 @@
+{
+  "_resourceType": "scene",
+  "id": "f1d95f82-77cd-4677-93d9-627bd6beaa10",
+  "_index": 5,
+  "name": "Star Transition for center offset",
+  "backgroundId": "29eaf9ca-b9f5-4ac9-aceb-a565ec8be859",
+  "tilesetId": "39ce07e6-0b85-44a2-9b10-1045c8dc7774",
+  "width": 40,
+  "height": 36,
+  "type": "TOPDOWN",
+  "colorModeOverride": "none",
+  "paletteIds": [],
+  "spritePaletteIds": [],
+  "collisions": "005a0+",
+  "autoFadeSpeed": 1,
+  "symbol": "scene_0",
+  "x": 608,
+  "y": 704,
+  "script": [],
+  "playerHit1Script": [],
+  "playerHit2Script": [],
+  "playerHit3Script": []
+}

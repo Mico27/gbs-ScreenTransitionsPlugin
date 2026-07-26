@@ -1,0 +1,12 @@
+{
+  "_resourceType": "background",
+  "id": "29eaf9ca-b9f5-4ac9-aceb-a565ec8be859",
+  "name": "large_start_transition",
+  "symbol": "bg_large_start_transition",
+  "tileColors": "",
+  "filename": "large_start_transition.png",
+  "width": 40,
+  "height": 36,
+  "imageWidth": 320,
+  "imageHeight": 288
+}
