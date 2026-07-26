@@ -154,6 +154,14 @@ Every numeric field (region X/Y/W/H, steps/frames, source X/Y, fill tile id, CGB
 palette) is a **value** field, so it accepts a **variable** or expression as well
 as a constant — the transition reads them at runtime.
 
+## Enabling / disabling transition types (ROM size)
+
+Each transition type has an on/off toggle under **Settings → Engine → Screen
+Transitions** (all on by default). Turning one off removes that effect's code
+from the compiled ROM, so you only pay for what you use. If a script still uses a
+transition whose type is disabled, the project fails to build with a clear error
+naming the effect — enable the type (or pick another effect) and rebuild.
+
 ## Install
 
 Copy `src/ScreenTransitionsPlugin` into your project's `plugins/` folder, then

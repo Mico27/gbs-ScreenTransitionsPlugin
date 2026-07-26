@@ -18,6 +18,17 @@
 #include "bankdata.h"
 #include "data_manager.h"
 #include "ui.h"    // win_pos_x/y, win_dest_pos_x/y, MENU_CLOSED_Y
+#include "data/states_defines.h" // TRANSITION_* enable flags (engine settings)
+
+// Per-transition-type enable flags come from engine settings as #defines
+// (defined = enabled). Derived flags for the shared helpers so a helper is only
+// compiled when at least one effect that uses it is enabled.
+#if defined(TRANSITION_CLOCK) || defined(TRANSITION_FAN)
+    #define TR_USE_RAY
+#endif
+#if defined(TR_USE_RAY) || defined(TRANSITION_DIAGONAL) || defined(TRANSITION_DIAMOND) || defined(TRANSITION_X)
+    #define TR_USE_LINE
+#endif
 
 // --- effects --- (ids are stable; the reverse-pair complements — wipe left/up,
 // curtain close, iris/diamond close, diagonal BR, mask shrink — were dropped and
@@ -78,8 +89,11 @@ const void * tr_scene_ptr; UBYTE tr_scene_bank;
 const void * tr_maskscene_ptr; UBYTE tr_maskscene_bank;
 
 
+#ifdef TR_USE_RAY
 static UWORD tr_perim(void);   // fwd decl (tr_calc_total below uses it before its definition)
+#endif
 
+#ifdef TRANSITION_DIAGONAL
 // Diagonal skew from tr_angle: signed offset of the front line across the given
 // span `dim`. 0 => +(dim-1), 128 => 0, 255 => -(dim-1). Kept in [-(dim-1),dim-1]
 // so the front stays one tile per row/column. Vertical variant passes tr_h
@@ -88,7 +102,9 @@ static int tr_diag_skew(UBYTE dim) {
     int m = (int)dim - 1;
     return m - (2 * m * (int)tr_angle) / 255;
 }
+#endif
 
+#ifdef TRANSITION_NOISE
 // Deterministic per-tile hash (0..255), varied per run by seed.
 static UBYTE tr_hash(UBYTE x, UBYTE y, UBYTE seed) {
     UBYTE h = (UBYTE)(x * 37u + y * 101u + seed * 151u);
@@ -98,37 +114,68 @@ static UBYTE tr_hash(UBYTE x, UBYTE y, UBYTE seed) {
     h ^= (UBYTE)(h << 1);
     return h;
 }
+#endif
 
 static UWORD tr_calc_total(void) {
     UBYTE W = tr_w, H = tr_h;
     switch (tr_effect) {
+#ifdef TRANSITION_WIPE
         case E_WIPE_R:                  return W;
         case E_WIPE_D:                  return H;
+#endif
+#ifdef TRANSITION_CURTAIN
         case E_OPEN_H:                  return (W + 1u) >> 1;
         case E_OPEN_V:                  return (H + 1u) >> 1;
+#endif
+#ifdef TRANSITION_IRIS
         case E_IRIS_OUT: {
             UBYTE rx = (tr_cx > (UBYTE)(W - 1u - tr_cx)) ? tr_cx : (UBYTE)(W - 1u - tr_cx);
             UBYTE ry = (tr_cy > (UBYTE)(H - 1u - tr_cy)) ? tr_cy : (UBYTE)(H - 1u - tr_cy);
             return (UWORD)((rx > ry ? rx : ry) + 1u);   // Chebyshev reach from centre
         }
+#endif
+#ifdef TRANSITION_DIAGONAL
         case E_DIAG_TL: { int sk = tr_diag_skew(tr_h); return (UWORD)(W + (sk < 0 ? -sk : sk)); }
         case E_DIAG_H:  { int sk = tr_diag_skew(tr_w); return (UWORD)(H + (sk < 0 ? -sk : sk)); }
+#endif
+#ifdef TRANSITION_CHECKER
         case E_CHECKER:                 return (UWORD)W << 1;
+#endif
+#ifdef TRANSITION_SNAKE
         case E_SNAKE_H: case E_SNAKE_V: return (UWORD)W * H;
+#endif
+#ifdef TRANSITION_SPIRAL
         case E_SPIRAL:                  return (UWORD)W * H;
+#endif
+#ifdef TRANSITION_BLINDS
         case E_BLINDS_H:                return (H < BLIND_BAND) ? H : BLIND_BAND;
         case E_BLINDS_V:                return (W < BLIND_BAND) ? W : BLIND_BAND;
+#endif
+#ifdef TRANSITION_FOURSQ
         case E_FOUR_SQ:                 return (UWORD)((W + 1u) >> 1) * ((H + 1u) >> 1);
+#endif
+#ifdef TRANSITION_DIAMOND
         case E_DIAMOND_OUT: {
             UBYTE mx = (tr_cx > (UBYTE)(W - 1u - tr_cx)) ? tr_cx : (UBYTE)(W - 1u - tr_cx);
             UBYTE my = (tr_cy > (UBYTE)(H - 1u - tr_cy)) ? tr_cy : (UBYTE)(H - 1u - tr_cy);
             return (UWORD)mx + my + 1u;
         }
+#endif
+#ifdef TRANSITION_CLOCK
         case E_CLOCK:                   return tr_perim();                    // one radius per step
+#endif
+#ifdef TRANSITION_NOISE
         case E_NOISE:                   return NOISE_BINS;
+#endif
+#ifdef TRANSITION_FAN
         case E_FAN4:                    return (UWORD)((tr_perim() + 3u) >> 2); // ceil(perim/4)
+#endif
+#ifdef TRANSITION_X
         case E_X:                       return (UWORD)((W >> 1) + 1u);   // half the width (linear thicken)
+#endif
+#ifdef TRANSITION_MASK
         case E_MASK_GROW:               return tr_mask_ntiles;
+#endif
         default:                        return W;
     }
 }
@@ -194,6 +241,7 @@ static void tr_put(UBYTE lx, UBYTE ly) {
     }
 }
 
+#ifdef TR_USE_LINE
 // Bresenham line between two region-local points (either may lie outside the
 // region — off-region tiles are clipped by the tr_put guard). Signed coords so
 // the walk is correct even when an endpoint is negative. Shared by the radial
@@ -213,7 +261,9 @@ static void tr_line(BYTE x0, BYTE y0, BYTE x1, BYTE y1) {
         if (e2 <  dx) { err = (BYTE)(err + dx); y = (BYTE)(y + sy); }
     }
 }
+#endif // TR_USE_LINE
 
+#ifdef TR_USE_RAY
 // Draw a radius: a Bresenham line from the region centre out to the perimeter
 // tile at clockwise walk-index `idx` (index 0 = top-left, walking L->R along the
 // top, then down the right, etc.). Callers add their own phase offset to `idx`.
@@ -235,13 +285,17 @@ static UWORD tr_perim(void) {
     UWORD p = (UWORD)2u * tr_w + 2u * tr_h;
     return (p > 4u) ? (UWORD)(p - 4u) : 1u;
 }
+#endif // TR_USE_RAY
 
 // Draw all tiles belonging to step `k` of the current effect.
 static void tr_draw_step(UWORD k) {
     UBYTE W = tr_w, H = tr_h;
     switch (tr_effect) {
+#ifdef TRANSITION_WIPE
         case E_WIPE_R: { UBYTE c = (UBYTE)k;         for (UBYTE y = 0; y < H; y++) tr_put(c, y); } break;
         case E_WIPE_D: { UBYTE r = (UBYTE)k;         for (UBYTE x = 0; x < W; x++) tr_put(x, r); } break;
+#endif
+#ifdef TRANSITION_CURTAIN
         case E_OPEN_H: { // curtain from centre outward (Reversed = close)
             UBYTE half = (W + 1u) >> 1;
             UBYTE c = half - 1u - (UBYTE)k;
@@ -252,6 +306,8 @@ static void tr_draw_step(UWORD k) {
             UBYTE r = half - 1u - (UBYTE)k;
             for (UBYTE x = 0; x < W; x++) { tr_put(x, r); if ((H - 1u - r) != r) tr_put(x, H - 1u - r); }
         } break;
+#endif
+#ifdef TRANSITION_IRIS
         case E_IRIS_OUT: { // Chebyshev (box) rings from the centre outward (Reversed = close)
             BYTE cx = (BYTE)tr_cx, cy = (BYTE)tr_cy;
             BYTE d = (BYTE)k;
@@ -263,6 +319,8 @@ static void tr_draw_step(UWORD k) {
                 if ((UBYTE)y < H) { if ((UBYTE)l < W) tr_put((UBYTE)l, (UBYTE)y); if (r != l && (UBYTE)r < W) tr_put((UBYTE)r, (UBYTE)y); }
             }
         } break;
+#endif
+#ifdef TRANSITION_DIAGONAL
         case E_DIAG_TL: { // vertical range: front spans top<->bottom, swept sideways.
             // tr_angle tilts it: 0 = "/", 128 = vertical, 255 = "\". One tr_line per step.
             int sk = tr_diag_skew(tr_h);
@@ -275,11 +333,15 @@ static void tr_draw_step(UWORD k) {
             int u = (sk < 0 ? sk : 0) + (int)k;          // left-edge y for this step
             tr_line(0, (BYTE)u, (BYTE)(W - 1u), (BYTE)(u - sk));
         } break;
+#endif
+#ifdef TRANSITION_CHECKER
         case E_CHECKER: {
             UBYTE p  = (UBYTE)(k / W);
             UBYTE cx = (UBYTE)(k % W);
             for (UBYTE y = 0; y < H; y++) if (((cx + y) & 1u) == p) tr_put(cx, y);
         } break;
+#endif
+#ifdef TRANSITION_SNAKE
         case E_SNAKE_H: { // serpentine, one tile per step (row L->R, R->L, ...)
             UBYTE row = (UBYTE)(k / W);
             UBYTE i   = (UBYTE)(k % W);
@@ -292,6 +354,8 @@ static void tr_draw_step(UWORD k) {
             UBYTE row = (col & 1u) ? (UBYTE)(H - 1u - j) : j;
             tr_put(col, row);
         } break;
+#endif
+#ifdef TRANSITION_SPIRAL
         case E_SPIRAL: { // serpentine spiral, one tile per step; clockwise, outside -> in.
             //Get the next spiral position based on k
             UBYTE layer = 0;
@@ -311,8 +375,10 @@ static void tr_draw_step(UWORD k) {
             }
             x += layer; y += layer;
             if (x < W && y < H) tr_put(x, y);
-            
+
         } break;
+#endif
+#ifdef TRANSITION_BLINDS
         case E_BLINDS_H: { // venetian blinds: every band advances one row per step
             for (UBYTE bs = 0; bs < H; bs += BLIND_BAND) {
                 UBYTE r = bs + (UBYTE)k;
@@ -325,6 +391,8 @@ static void tr_draw_step(UWORD k) {
                 if (c < W && (UBYTE)k < BLIND_BAND) for (UBYTE y = 0; y < H; y++) tr_put(c, y);
             }
         } break;
+#endif
+#ifdef TRANSITION_FOURSQ
         case E_FOUR_SQ: { // chunky 2x2 (16x16px) block wipe
             UBYTE bcols = (W + 1u) >> 1;
             UBYTE by = (UBYTE)(k / bcols);
@@ -336,6 +404,8 @@ static void tr_draw_step(UWORD k) {
                     if (xx < W && yy < H) tr_put(xx, yy);
                 }
         } break;
+#endif
+#ifdef TRANSITION_DIAMOND
         case E_DIAMOND_OUT: { // diamond iris from the centre outward (Reversed = close)
             BYTE cx = (BYTE)tr_cx, cy = (BYTE)tr_cy;
             BYTE d = (BYTE)k;
@@ -345,11 +415,15 @@ static void tr_draw_step(UWORD k) {
             tr_line(cx, (BYTE)(cy + d), (BYTE)(cx - d), cy);
             tr_line((BYTE)(cx - d), cy, cx, (BYTE)(cy - d));
         } break;
+#endif
+#ifdef TRANSITION_CLOCK
         case E_CLOCK: { // radial clock sweep: one perimeter point per step, line centre->edge
             UWORD perim = tr_perim();
             UWORD phase = (UWORD)(W >> 1) + (UWORD)(((UWORD)tr_angle * perim) >> 8); // top-centre + angle
             tr_ray((UWORD)(k + phase));
         } break;
+#endif
+#ifdef TRANSITION_FAN
         case E_FAN4: { // 4-blade fan: 4 radii sweeping contiguous quarter-arcs in parallel
             UWORD perim = tr_perim();
             UWORD total = (UWORD)((perim + 3u) >> 2);   // ceil(perim/4) = steps
@@ -359,11 +433,15 @@ static void tr_draw_step(UWORD k) {
                 if (idx < perim) tr_ray(idx + phase);
             }
         } break;
+#endif
+#ifdef TRANSITION_NOISE
         case E_NOISE: { // random-looking dissolve (hash binned)
             for (UBYTE y = 0; y < H; y++)
                 for (UBYTE x = 0; x < W; x++)
                     if ((UBYTE)(tr_hash(x, y, tr_noise_seed) >> 3) == (UBYTE)k) tr_put(x, y);
         } break;
+#endif
+#ifdef TRANSITION_X
         case E_X: { // an X whose two diagonal arms thicken LINEARLY into uniform bands:
             // draw both full diagonals, translated horizontally by +/-k each step.
             BYTE kk = (BYTE)k;
@@ -375,6 +453,8 @@ static void tr_draw_step(UWORD k) {
                 tr_line((BYTE)(wm - kk), 0, (BYTE)-kk, hm);   // anti -k
             }
         } break;
+#endif
+#ifdef TRANSITION_MASK
         case E_MASK_GROW: { // reveal by the mask scene's tile index, low first (Reversed = high first)
             UWORD target = k;
             for (UBYTE y = 0; y < H; y++) {
@@ -385,6 +465,7 @@ static void tr_draw_step(UWORD k) {
                 }
             }
         } break;
+#endif
     }
 }
 
@@ -440,9 +521,11 @@ static void tr_begin(void) {
         tr_attr_ptr = bkg.cgb_tilemap_attr.ptr; tr_attr_bank = bkg.cgb_tilemap_attr.bank;
     }
 
-    if (tr_effect == E_NOISE) {
-        tr_noise_seed = (UBYTE)DIV_REG;   // vary the dissolve each run
-    } else if (tr_effect == E_MASK_GROW) {
+#ifdef TRANSITION_NOISE
+    if (tr_effect == E_NOISE) tr_noise_seed = (UBYTE)DIV_REG;   // vary the dissolve each run
+#endif
+#ifdef TRANSITION_MASK
+    if (tr_effect == E_MASK_GROW) {
         scene_t scn;
         MemcpyBanked(&scn, tr_maskscene_ptr, sizeof(scn), tr_maskscene_bank);
         background_t bkg;
@@ -453,6 +536,7 @@ static void tr_begin(void) {
         tr_mask_ntiles = ReadBankedUWORD(&(((const tileset_t *)bkg.tileset.ptr)->n_tiles), bkg.tileset.bank);
         if (tr_mask_ntiles == 0) tr_mask_ntiles = 1;
     }
+#endif
 
     tr_step = 0;
     tr_total = tr_calc_total();

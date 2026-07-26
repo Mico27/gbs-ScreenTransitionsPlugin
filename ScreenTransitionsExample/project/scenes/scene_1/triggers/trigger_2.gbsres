@@ -11,9 +11,23 @@
   "height": 2,
   "script": [
     {
+      "command": "EVENT_SET_VALUE",
+      "args": {
+        "variable": "L0",
+        "value": {
+          "type": "rnd",
+          "value": {
+            "type": "number",
+            "value": 255
+          }
+        }
+      },
+      "id": "dc9c0a49-fda6-4d02-99bd-a23ea6c397a9"
+    },
+    {
       "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
       "args": {
-        "effect": "mask_grow",
+        "effect": "diag_tl",
         "layer": "background",
         "fill": "black",
         "customTile": {
@@ -30,8 +44,8 @@
         },
         "direction": "forward",
         "angle": {
-          "type": "number",
-          "value": 0
+          "type": "variable",
+          "value": "L0"
         },
         "customCenter": false,
         "centerX": {

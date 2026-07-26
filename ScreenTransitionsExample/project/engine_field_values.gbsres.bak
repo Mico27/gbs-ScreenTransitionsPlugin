@@ -28,10 +28,6 @@
     {
       "id": "SUBMAP_ENABLE_SCROLL_RECT_DOWN",
       "value": 1
-    },
-    {
-      "id": "TRANSITION_WIPE",
-      "value": 1
     }
   ]
 }

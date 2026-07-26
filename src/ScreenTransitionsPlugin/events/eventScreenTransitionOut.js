@@ -49,6 +49,26 @@ const num = (value) => ({ type: "number", value });
 const ANGLE_FX = ["clock", "fan4", "diag_tl", "diag_h"];
 const CENTER_FX = ["iris_out", "diamond_out", "clock", "fan4"];
 
+// Each effect maps to the engine setting (Settings > Engine > Screen Transitions)
+// that must be enabled for it to be compiled into the ROM.
+const EFFECT_SETTING = {
+  wipe_right: "TRANSITION_WIPE", wipe_down: "TRANSITION_WIPE",
+  open_h: "TRANSITION_CURTAIN", open_v: "TRANSITION_CURTAIN",
+  iris_out: "TRANSITION_IRIS",
+  diag_tl: "TRANSITION_DIAGONAL", diag_h: "TRANSITION_DIAGONAL",
+  checker: "TRANSITION_CHECKER",
+  snake_h: "TRANSITION_SNAKE", snake_v: "TRANSITION_SNAKE",
+  spiral: "TRANSITION_SPIRAL",
+  blinds_h: "TRANSITION_BLINDS", blinds_v: "TRANSITION_BLINDS",
+  four_sq: "TRANSITION_FOURSQ",
+  diamond_out: "TRANSITION_DIAMOND",
+  clock: "TRANSITION_CLOCK",
+  noise: "TRANSITION_NOISE",
+  fan4: "TRANSITION_FAN",
+  x: "TRANSITION_X",
+  mask_grow: "TRANSITION_MASK",
+};
+
 export const fields = [
   {
     key: "effect",
@@ -218,14 +238,43 @@ export const fields = [
 
 export const compile = (input, helpers) => {
   const {
-    options, _setConstMemInt8, _setConstMemInt16, engineFieldSetToScriptValue,
-    _invoke, _spritesHide, _addComment,
+    options, engineFields, engineFieldValues,
+    _setConstMemInt8, _setConstMemInt16, _setMemInt8ToVariable,
+    variableSetToScriptValue, _invoke, _spritesHide, _addComment,
   } = helpers;
 
   const V = (v, d) =>
     v === undefined || v === null ? num(d) : typeof v === "number" ? num(v) : v;
   const bAND = (a, b) => ({ type: "bAND", valueA: a, valueB: b });
   const bOR = (a, b) => ({ type: "bOR", valueA: a, valueB: b });
+
+  // Write a script value (const / variable / expression) into an engine byte
+  // global directly (the internal state globals are not engine.json fields).
+  const setField = (cvar, value) => {
+    if (value && value.type === "number") {
+      _setConstMemInt8(cvar, value.value);
+    } else if (value && value.type === "variable") {
+      _setMemInt8ToVariable(cvar, value.value);
+    } else {
+      variableSetToScriptValue("T0", value); // evaluate expression into a temp
+      _setMemInt8ToVariable(cvar, "T0");
+    }
+  };
+
+  // Compile-time guard: the effect's engine setting must be enabled.
+  const isEnabled = (key) => {
+    const field = engineFields && engineFields[key];
+    if (!field) return true;
+    const ev = (engineFieldValues || []).find((v) => v.id === key);
+    const val = ev && ev.value !== undefined ? ev.value : field.defaultValue;
+    return !!val;
+  };
+  const settingKey = EFFECT_SETTING[input.effect];
+  if (settingKey && !isEnabled(settingKey)) {
+    throw new Error(
+      `Screen Transition Out: the "${input.effect}" transition is disabled in Settings > Engine > Screen Transitions. Enable it (or pick another effect) to use it.`,
+    );
+  }
 
   const effect = EFFECT_ID[input.effect] ?? 0;
   const layer = input.layer === "overlay" ? 1 : 0;
@@ -257,27 +306,27 @@ export const compile = (input, helpers) => {
     : num(202);
 
   // Set the transition state globals directly (control words as consts, value
-  // fields via engineFieldSetToScriptValue so they accept variables/expressions).
+  // fields via setField so they still accept variables/expressions).
   _setConstMemInt8("tr_effect", effect);
   _setConstMemInt8("tr_layer", layer);
   _setConstMemInt8("tr_mode", mode);
-  engineFieldSetToScriptValue("tr_x0", V(input.x, 0));
-  engineFieldSetToScriptValue("tr_y0", V(input.y, 0));
-  engineFieldSetToScriptValue("tr_w", V(input.width, 20));
-  engineFieldSetToScriptValue("tr_h", V(input.height, 18));
-  engineFieldSetToScriptValue("tr_speed", V(input.speed, 1));
-  engineFieldSetToScriptValue("tr_hold", V(input.hold, 1));
-  engineFieldSetToScriptValue("tr_fill_tile", fillTile);
+  setField("tr_x0", V(input.x, 0));
+  setField("tr_y0", V(input.y, 0));
+  setField("tr_w", V(input.width, 20));
+  setField("tr_h", V(input.height, 18));
+  setField("tr_speed", V(input.speed, 1));
+  setField("tr_hold", V(input.hold, 1));
+  setField("tr_fill_tile", fillTile);
   // fill attr = CGB priority (0x80) | (palette & 7)
-  engineFieldSetToScriptValue("tr_fill_attr", bOR(num(0x80), bAND(V(input.cgbPalette, 7), num(7))));
+  setField("tr_fill_attr", bOR(num(0x80), bAND(V(input.cgbPalette, 7), num(7))));
   // direction (reverse step order), angle offset, and centre point
   _setConstMemInt8("tr_reverse", input.direction === "reverse" ? 1 : 0);
   if (ANGLE_FX.includes(input.effect)) {
-    engineFieldSetToScriptValue("tr_angle", V(input.angle, 0));
+    setField("tr_angle", V(input.angle, 0));
   }
   if (CENTER_FX.includes(input.effect) && input.customCenter) {
-    engineFieldSetToScriptValue("tr_cx", V(input.centerX, 10));
-    engineFieldSetToScriptValue("tr_cy", V(input.centerY, 9));
+    setField("tr_cx", V(input.centerX, 10));
+    setField("tr_cy", V(input.centerY, 9));
   } else {
     _setConstMemInt8("tr_cx", 0xff); // auto centre
     _setConstMemInt8("tr_cy", 0xff);
