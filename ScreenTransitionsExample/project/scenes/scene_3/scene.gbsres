@@ -51,8 +51,34 @@
           "type": "number",
           "value": 18
         },
-        "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917",
-        "direction": "reverse"
+        "maskSceneId": "f1d95f82-77cd-4677-93d9-627bd6beaa10",
+        "direction": "reverse",
+        "customCenter": true,
+        "centerX": {
+          "type": "add",
+          "valueA": {
+            "type": "property",
+            "target": "player",
+            "property": "xpos"
+          },
+          "valueB": {
+            "type": "number",
+            "value": 1
+          }
+        },
+        "centerY": {
+          "type": "add",
+          "valueA": {
+            "type": "property",
+            "target": "player",
+            "property": "ypos"
+          },
+          "valueB": {
+            "type": "number",
+            "value": 2
+          }
+        },
+        "centerAbsolute": true
       },
       "id": "322416e1-72a9-4e52-9ee7-ab146797c52f"
     },

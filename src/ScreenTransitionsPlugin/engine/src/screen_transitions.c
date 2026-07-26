@@ -79,7 +79,7 @@ UBYTE tr_base_x, tr_base_y; // scroll offset in tiles (bkg) so we track the visi
 UWORD tr_step, tr_total;
 UBYTE tr_hold_ctr;
 UBYTE tr_noise_seed; // per-run seed for the noise dissolve
-UBYTE tr_map_w, tr_mask_w;
+UBYTE tr_map_w, tr_mask_w, tr_mask_h;
 const UBYTE * tr_map_ptr, * tr_attr_ptr, * tr_mask_ptr;
 UBYTE tr_map_bank, tr_attr_bank, tr_mask_bank;
 UWORD tr_mask_ntiles; // = tileset tile count = number of grow/shrink steps
@@ -456,11 +456,16 @@ static void tr_draw_step(UWORD k) {
 #endif
 #ifdef TRANSITION_MASK
         case E_MASK_GROW: { // reveal by the mask scene's tile index, low first (Reversed = high first)
+            // Sample so the mask's centre lands on (tr_cx,tr_cy); the mask scene is
+            // sized by the author to cover the region for the chosen centre offset.
             UWORD target = k;
+            UBYTE mcx = tr_mask_w >> 1, mcy = tr_mask_h >> 1;
             for (UBYTE y = 0; y < H; y++) {
-                UWORD row = (UWORD)(UBYTE)(tr_y0 + y) * (UWORD)tr_mask_w;
+                UBYTE my = (UBYTE)(mcy + y - tr_cy);
+                UWORD row = (UWORD)my * (UWORD)tr_mask_w;
                 for (UBYTE x = 0; x < W; x++) {
-                    UBYTE mv = ReadBankedUBYTE(tr_mask_ptr + row + (UBYTE)(tr_x0 + x), tr_mask_bank);
+                    UBYTE mx = (UBYTE)(mcx + x - tr_cx);
+                    UBYTE mv = ReadBankedUBYTE(tr_mask_ptr + row + mx, tr_mask_bank);
                     if ((UWORD)mv == target) tr_put(x, y);
                 }
             }
@@ -531,6 +536,7 @@ static void tr_begin(void) {
         background_t bkg;
         MemcpyBanked(&bkg, scn.background.ptr, sizeof(bkg), scn.background.bank);
         tr_mask_w = bkg.width;
+        tr_mask_h = bkg.height;
         tr_mask_ptr = bkg.tilemap.ptr; tr_mask_bank = bkg.tilemap.bank;
         // grow/shrink over the tileset's tile count (one index per step)
         tr_mask_ntiles = ReadBankedUWORD(&(((const tileset_t *)bkg.tileset.ptr)->n_tiles), bkg.tileset.bank);

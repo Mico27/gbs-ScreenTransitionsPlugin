@@ -16,8 +16,8 @@
             "scale": 1.5,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 90,
-                "y": -36
+                "x": 80,
+                "y": 71.66666666666666
             }
         },
         "gray_gradient.tsx": {
@@ -34,11 +34,11 @@
         }
     },
     "last.imagePath": "D:/GBStudio/gbs-plugins-repos/gbs-ScreenTransitionsPlugin/tiled",
-    "map.height": 18,
+    "map.height": 36,
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 8,
     "map.tileWidth": 8,
-    "map.width": 20,
+    "map.width": 40,
     "openFiles": [
         "128_unique_tiles.tsx",
         "circle_transition.tmx",

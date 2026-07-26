@@ -47,7 +47,7 @@ const num = (value) => ({ type: "number", value });
 
 // Effects that support an angular start offset / a custom centre point.
 const ANGLE_FX = ["clock", "fan4", "diag_tl", "diag_h"];
-const CENTER_FX = ["iris_out", "diamond_out", "clock", "fan4"];
+const CENTER_FX = ["iris_out", "diamond_out", "clock", "fan4", "mask_grow"];
 
 // Each effect maps to the engine setting (Settings > Engine > Screen Transitions)
 // that must be enabled for it to be compiled into the ROM.
@@ -171,10 +171,23 @@ export const fields = [
     conditions: [{ key: "effect", in: CENTER_FX }],
   },
   {
+    key: "centerAbsolute",
+    label: "Centre is absolute (world) position",
+    description:
+      "Treat Centre X/Y as world/map tiles and subtract the current scroll at runtime, instead of screen-relative tiles. Background layer only (the overlay isn't scrolled).",
+    type: "checkbox",
+    defaultValue: false,
+    conditions: [
+      { key: "customCenter", eq: true },
+      { key: "effect", in: CENTER_FX },
+      { key: "layer", eq: "background" },
+    ],
+  },
+  {
     type: "group",
     fields: [
-      { key: "centerX", label: "Centre X", type: "value", width: "50%", min: 0, max: 31, defaultValue: num(10) },
-      { key: "centerY", label: "Centre Y", type: "value", width: "50%", min: 0, max: 31, defaultValue: num(9) },
+      { key: "centerX", label: "Centre X", type: "value", width: "50%", min: 0, max: 255, defaultValue: num(10) },
+      { key: "centerY", label: "Centre Y", type: "value", width: "50%", min: 0, max: 255, defaultValue: num(9) },
     ],
     conditions: [
       { key: "customCenter", eq: true },
@@ -219,12 +232,12 @@ export const fields = [
   {
     type: "label",
     label:
-      "Mask Grow/Shrink: the mask scene's tile values (0-255) set the reveal order — darker/lower tiles first (Grow) so any drawn gradient becomes the transition shape.",
+      "Mask: the mask scene's tile values (0-255) set the reveal order — darker/lower tiles first (Reversed = highest first) so any drawn gradient becomes the transition shape. With a Custom centre the mask's centre tile aligns to that screen point; size the mask scene large enough to cover the screen at the chosen offset.",
     conditions: [{ key: "effect", in: ["mask_grow"] }],
   },
   {
     key: "maskSceneId",
-    label: "Mask scene (screen-sized)",
+    label: "Mask scene (screen-sized; larger for a custom centre)",
     type: "scene",
     defaultValue: "LAST_SCENE",
     conditions: [{ key: "effect", in: ["mask_grow"] }],
@@ -239,14 +252,19 @@ export const fields = [
 export const compile = (input, helpers) => {
   const {
     options, engineFields, engineFieldValues,
-    _setConstMemInt8, _setConstMemInt16, _setMemInt8ToVariable,
-    variableSetToScriptValue, _invoke, _spritesHide, _addComment,
+    _setConstMemInt8, _setConstMemInt16, _setMemInt8ToVariable, _setMemInt8,
+    _stackPushScriptValue, _stackPop,
+    _invoke, _spritesHide, _addComment,
   } = helpers;
 
   const V = (v, d) =>
     v === undefined || v === null ? num(d) : typeof v === "number" ? num(v) : v;
   const bAND = (a, b) => ({ type: "bAND", valueA: a, valueB: b });
   const bOR = (a, b) => ({ type: "bOR", valueA: a, valueB: b });
+  const sub = (a, b) => ({ type: "sub", valueA: a, valueB: b });
+  const shr = (a, b) => ({ type: "shr", valueA: a, valueB: b });
+  const vmin = (a, b) => ({ type: "min", valueA: a, valueB: b });
+  const vmax = (a, b) => ({ type: "max", valueA: a, valueB: b });
 
   // Write a script value (const / variable / expression) into an engine byte
   // global directly (the internal state globals are not engine.json fields).
@@ -256,9 +274,28 @@ export const compile = (input, helpers) => {
     } else if (value && value.type === "variable") {
       _setMemInt8ToVariable(cvar, value.value);
     } else {
-      variableSetToScriptValue("T0", value); // evaluate expression into a temp
-      _setMemInt8ToVariable(cvar, "T0");
+      // expression: push it (no temp var) and copy the result into the global
+      _stackPushScriptValue(value);
+      _setMemInt8(cvar, ".ARG0");
+      _stackPop(1);
     }
+  };
+
+  // Set a centre component as one pushed expression (any value type, no temp
+  // var), clamped into the region [0, dim-1], then copied to the global. For an
+  // "absolute" (world) centre, subtract the current scroll (axis = xscroll /
+  // yscroll) first; the signed RPN means an off-screen pivot clamps to 0, not the
+  // far edge. `dim` is the region width/height value (matches tr_w / tr_h).
+  const setCenter = (cvar, value, axis, dim, absolute) => {
+    let expr = value;
+    if (absolute) {
+      const scroll = { type: "property", target: "camera", property: axis };
+      expr = sub(value, shr(scroll, num(3))); // centre - (scroll >> 3)
+    }
+    expr = vmax(num(0), vmin(expr, sub(dim, num(1)))); // clamp to [0, dim-1]
+    _stackPushScriptValue(expr);
+    _setMemInt8(cvar, ".ARG0"); // copy the result off the stack into the global
+    _stackPop(1);
   };
 
   // Compile-time guard: the effect's engine setting must be enabled.
@@ -325,8 +362,10 @@ export const compile = (input, helpers) => {
     setField("tr_angle", V(input.angle, 0));
   }
   if (CENTER_FX.includes(input.effect) && input.customCenter) {
-    setField("tr_cx", V(input.centerX, 10));
-    setField("tr_cy", V(input.centerY, 9));
+    // absolute (scroll-subtracted) centre only makes sense on the scrolled background
+    const absCentre = !!input.centerAbsolute && layer === 0;
+    setCenter("tr_cx", V(input.centerX, 10), "xscroll", V(input.width, 20), absCentre);
+    setCenter("tr_cy", V(input.centerY, 9), "yscroll", V(input.height, 18), absCentre);
   } else {
     _setConstMemInt8("tr_cx", 0xff); // auto centre
     _setConstMemInt8("tr_cy", 0xff);

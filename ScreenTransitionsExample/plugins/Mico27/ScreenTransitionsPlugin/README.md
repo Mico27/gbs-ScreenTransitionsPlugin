@@ -145,10 +145,20 @@ Three extra parameters (on both events) let you retarget most effects:
 - **Initial angle (0-255)** — rotates where a **clock** / **fan** sweep starts
   (0 = 12 o'clock), or tilts the **diagonal**'s front line (0 = "/" down-right,
   128 = vertical, 255 = "\" down-left).
-- **Custom centre point** — moves the pivot of **iris**, **diamond**, **clock**
-  and **fan** off the region centre (tick *Custom centre point*, then set
+- **Custom centre point** — moves the pivot of **iris**, **diamond**, **clock**,
+  **fan** and **mask** off the region centre (tick *Custom centre point*, then set
   *Centre X / Y* in region-relative tiles). Left unticked, the pivot auto-centres
-  the region. All three accept variables/expressions.
+  the region. All accept variables/expressions. The resolved centre is clamped to
+  the region (0…W-1, 0…H-1), so an out-of-range value snaps to the nearest edge.
+  For **mask**, the centre is the screen point the mask scene's centre tile aligns
+  to — draw the mask larger than the screen so it still covers everything at the
+  chosen offset (the plugin does not validate the mask size).
+  - **Centre is absolute (world) position** — with a custom centre on the
+    **background** layer, tick this to give *Centre X / Y* as world/map tiles; the
+    plugin subtracts the current scroll at runtime to get the on-screen pivot.
+    Handy for centring an effect on a fixed point of a scrolled background. Only
+    offered for background transitions (the overlay isn't scrolled); leave it off
+    for screen-relative tiles.
 
 Every numeric field (region X/Y/W/H, steps/frames, source X/Y, fill tile id, CGB
 palette) is a **value** field, so it accepts a **variable** or expression as well
