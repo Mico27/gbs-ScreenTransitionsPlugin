@@ -8,6 +8,16 @@ events under the **Screen** group:
 - **Screen Transition In (reveal scene)** — rebuilds a scene in the same family
   of patterns.
 
+
+
+https://github.com/user-attachments/assets/f7456ac3-d21e-49d4-be9c-52976a9532c2
+
+
+
+https://github.com/user-attachments/assets/448a32b9-21ad-4d8c-aacb-99ae302bcca1
+
+
+
 ## How it works
 
 Each transition runs at **runtime as a single waitable VM function**
