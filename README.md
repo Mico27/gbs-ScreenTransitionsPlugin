@@ -134,6 +134,12 @@ sprites · Region.
 *Steps per frame* advances more of the effect each frame (faster); *Frames per
 step* waits extra frames between batches (slower).
 
+*Start frame* / *End frame* trim the effect's progress range: **Start frame** is
+the step the effect begins at (skips the earlier steps, so the region starts
+partly transitioned), and **End frame** stops it early — clamped to the effect's
+own length, with **0** meaning "run to the end". (An effect's length in steps
+varies by type — e.g. a wipe is one step per column, a snake/spiral one per tile.)
+
 ### Direction, angle & centre
 
 Three extra parameters (on both events) let you retarget most effects:

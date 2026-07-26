@@ -1,0 +1,270 @@
+{
+  "_resourceType": "trigger",
+  "id": "7daa52d6-5990-463a-8bc1-f6b2034eef50",
+  "name": "",
+  "prefabId": "",
+  "x": 20,
+  "y": 0,
+  "symbol": "trigger_5",
+  "prefabScriptOverrides": {},
+  "width": 4,
+  "height": 4,
+  "script": [
+    {
+      "command": "EVENT_GROUP",
+      "args": {
+        "__label": "Draw pokeball"
+      },
+      "children": {
+        "true": [
+          {
+            "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
+            "args": {
+              "effect": "mask_grow",
+              "layer": "background",
+              "fill": "black",
+              "customTile": {
+                "type": "number",
+                "value": 0
+              },
+              "speed": {
+                "type": "number",
+                "value": 1
+              },
+              "hold": {
+                "type": "number",
+                "value": 1
+              },
+              "hideSprites": false,
+              "cgbPalette": {
+                "type": "number",
+                "value": 7
+              },
+              "x": {
+                "type": "number",
+                "value": 0
+              },
+              "y": {
+                "type": "number",
+                "value": 0
+              },
+              "width": {
+                "type": "number",
+                "value": 20
+              },
+              "height": {
+                "type": "number",
+                "value": 18
+              },
+              "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917",
+              "__collapse": true,
+              "direction": "forward",
+              "maxFrame": {
+                "type": "number",
+                "value": 3
+              },
+              "minFrame": {
+                "type": "number",
+                "value": 0
+              }
+            },
+            "id": "1f78fbf6-4df4-4f75-b43c-b6ed7359e2e5"
+          },
+          {
+            "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
+            "args": {
+              "effect": "mask_grow",
+              "layer": "background",
+              "fill": "black",
+              "customTile": {
+                "type": "number",
+                "value": 0
+              },
+              "speed": {
+                "type": "number",
+                "value": 1
+              },
+              "hold": {
+                "type": "number",
+                "value": 1
+              },
+              "hideSprites": false,
+              "cgbPalette": {
+                "type": "number",
+                "value": 7
+              },
+              "x": {
+                "type": "number",
+                "value": 0
+              },
+              "y": {
+                "type": "number",
+                "value": 0
+              },
+              "width": {
+                "type": "number",
+                "value": 20
+              },
+              "height": {
+                "type": "number",
+                "value": 18
+              },
+              "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917",
+              "__collapse": true,
+              "direction": "reverse",
+              "maxFrame": {
+                "type": "number",
+                "value": 0
+              },
+              "minFrame": {
+                "type": "number",
+                "value": 7
+              }
+            },
+            "id": "a553984c-6b63-4144-8772-ca7c037f44d1"
+          },
+          {
+            "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
+            "args": {
+              "effect": "open_v",
+              "layer": "background",
+              "fill": "black",
+              "customTile": {
+                "type": "number",
+                "value": 0
+              },
+              "speed": {
+                "type": "number",
+                "value": 1
+              },
+              "hold": {
+                "type": "number",
+                "value": 1
+              },
+              "minFrame": {
+                "type": "number",
+                "value": 0
+              },
+              "maxFrame": {
+                "type": "number",
+                "value": 1
+              },
+              "direction": "forward",
+              "angle": {
+                "type": "number",
+                "value": 0
+              },
+              "customCenter": false,
+              "centerAbsolute": false,
+              "centerX": {
+                "type": "number",
+                "value": 10
+              },
+              "centerY": {
+                "type": "number",
+                "value": 9
+              },
+              "hideSprites": false,
+              "cgbPalette": {
+                "type": "number",
+                "value": 7
+              },
+              "x": {
+                "type": "number",
+                "value": 0
+              },
+              "y": {
+                "type": "number",
+                "value": 0
+              },
+              "width": {
+                "type": "number",
+                "value": 20
+              },
+              "height": {
+                "type": "number",
+                "value": 18
+              },
+              "maskSceneId": "f1d95f82-77cd-4677-93d9-627bd6beaa10",
+              "__collapse": true
+            },
+            "id": "5c2eb756-f696-440c-afe8-313fbff35019"
+          },
+          {
+            "command": "PT_EVENT_SCREEN_TRANSITION_IN",
+            "args": {
+              "effect": "mask_grow",
+              "source": "current",
+              "layer": "overlay",
+              "sceneId": "f1d95f82-77cd-4677-93d9-627bd6beaa10",
+              "srcX": {
+                "type": "number",
+                "value": 0
+              },
+              "srcY": {
+                "type": "number",
+                "value": 0
+              },
+              "speed": {
+                "type": "number",
+                "value": 1
+              },
+              "hold": {
+                "type": "number",
+                "value": 1
+              },
+              "coverFirst": false,
+              "coverTile": 202,
+              "minFrame": {
+                "type": "number",
+                "value": 9
+              },
+              "maxFrame": {
+                "type": "number",
+                "value": 0
+              },
+              "direction": "reverse",
+              "angle": {
+                "type": "number",
+                "value": 0
+              },
+              "customCenter": false,
+              "centerAbsolute": false,
+              "centerX": {
+                "type": "number",
+                "value": 10
+              },
+              "centerY": {
+                "type": "number",
+                "value": 9
+              },
+              "hideSprites": false,
+              "showSprites": false,
+              "x": {
+                "type": "number",
+                "value": 0
+              },
+              "y": {
+                "type": "number",
+                "value": 0
+              },
+              "width": {
+                "type": "number",
+                "value": 20
+              },
+              "height": {
+                "type": "number",
+                "value": 18
+              },
+              "maskSceneId": "cad3c295-a063-4a72-adf8-8bee4806f917"
+            },
+            "id": "aa3cdf5d-775c-4527-946d-8f3059663c5a"
+          }
+        ]
+      },
+      "id": "55e46a93-8d3c-4a4d-8b0e-92559d247a95"
+    }
+  ],
+  "leaveScript": [],
+  "_index": 3
+}

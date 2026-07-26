@@ -50,7 +50,11 @@
           "value": 18
         },
         "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
-        "__collapse": true
+        "__collapse": true,
+        "maxFrame": {
+          "type": "number",
+          "value": 0
+        }
       },
       "id": "02b0b56b-f2b1-453b-bf5a-02c5453073aa"
     },

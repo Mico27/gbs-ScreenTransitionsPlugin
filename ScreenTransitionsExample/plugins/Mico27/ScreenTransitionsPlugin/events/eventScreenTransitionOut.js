@@ -140,6 +140,32 @@ export const fields = [
     ],
   },
   {
+    type: "group",
+    fields: [
+      {
+        key: "minFrame",
+        label: "Start step",
+        description: "Begin the effect at this step instead of 0 (skips the start).",
+        type: "value",
+        width: "50%",
+        min: 0,
+        max: 1023,
+        defaultValue: num(0),
+      },
+      {
+        key: "maxFrame",
+        label: "End step (0 = full)",
+        description:
+          "Stop at this step, clamped to the effect's own length. 0 = run to the end.",
+        type: "value",
+        width: "50%",
+        min: 0,
+        max: 1023,
+        defaultValue: num(0),
+      },
+    ],
+  },
+  {
     key: "direction",
     label: "Direction",
     description:
@@ -252,7 +278,7 @@ export const fields = [
 export const compile = (input, helpers) => {
   const {
     options, engineFields, engineFieldValues,
-    _setConstMemInt8, _setConstMemInt16, _setMemInt8ToVariable, _setMemInt8,
+    _setConstMemInt8, _setConstMemInt16, _setMemInt8ToVariable, _setMemInt8, _setMemInt16,
     _stackPushScriptValue, _stackPop,
     _invoke, _spritesHide, _addComment,
   } = helpers;
@@ -277,6 +303,17 @@ export const compile = (input, helpers) => {
       // expression: push it (no temp var) and copy the result into the global
       _stackPushScriptValue(value);
       _setMemInt8(cvar, ".ARG0");
+      _stackPop(1);
+    }
+  };
+
+  // 16-bit variant for the UWORD globals (min/max frame can exceed 255).
+  const setField16 = (cvar, value) => {
+    if (value && value.type === "number") {
+      _setConstMemInt16(cvar, value.value);
+    } else {
+      _stackPushScriptValue(value);
+      _setMemInt16(cvar, ".ARG0");
       _stackPop(1);
     }
   };
@@ -353,6 +390,8 @@ export const compile = (input, helpers) => {
   setField("tr_h", V(input.height, 18));
   setField("tr_speed", V(input.speed, 1));
   setField("tr_hold", V(input.hold, 1));
+  setField16("tr_min", V(input.minFrame, 0)); // start frame
+  setField16("tr_max", V(input.maxFrame, 0)); // end frame (0 = full)
   setField("tr_fill_tile", fillTile);
   // fill attr = CGB priority (0x80) | (palette & 7)
   setField("tr_fill_attr", bOR(num(0x80), bAND(V(input.cgbPalette, 7), num(7))));

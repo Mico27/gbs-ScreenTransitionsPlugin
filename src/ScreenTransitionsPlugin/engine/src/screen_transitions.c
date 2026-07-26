@@ -77,6 +77,7 @@ UBYTE tr_fill_tile, tr_fill_attr;
 UBYTE tr_src_x, tr_src_y; // source offset in the other scene (copy mode)
 UBYTE tr_base_x, tr_base_y; // scroll offset in tiles (bkg) so we track the visible screen
 UWORD tr_step, tr_total;
+UWORD tr_min, tr_max; // min frame = initial tr_step; max frame = tr_total (0 = full; clamped to tr_calc_total())
 UBYTE tr_hold_ctr;
 UBYTE tr_noise_seed; // per-run seed for the noise dissolve
 UBYTE tr_map_w, tr_mask_w, tr_mask_h;
@@ -511,6 +512,7 @@ static void tr_begin(void) {
     if (!tr_hold) tr_hold = 1;
     if (tr_cx == 0xFFu) tr_cx = tr_w >> 1;   // 0xFF sentinel = auto centre
     if (tr_cy == 0xFFu) tr_cy = tr_h >> 1;
+    // (custom centres are already clamped into the region by the event)
 
     if (tr_layer == L_BKG) { tr_base_x = (UBYTE)(scroll_x >> 3); tr_base_y = (UBYTE)(scroll_y >> 3); }
     else { tr_base_x = 0; tr_base_y = 0; tr_overlay_show(); }
@@ -544,8 +546,13 @@ static void tr_begin(void) {
     }
 #endif
 
-    tr_step = 0;
-    tr_total = tr_calc_total();
+    {
+        UWORD calc = tr_calc_total();
+        // max frame sets the total but never exceeds the effect's natural length
+        // (0 = run to the end); min frame sets the starting step (clamped).
+        tr_total = (tr_max != 0u && tr_max < calc) ? tr_max : calc;
+        tr_step = (tr_min < tr_total) ? tr_min : tr_total;
+    }
     tr_hold_ctr = 0;
 }
 
@@ -562,8 +569,10 @@ UBYTE screen_transition_update(void * THIS, UBYTE start, UWORD * stack_frame) OL
     }
 
     for (UBYTE s = 0; s < tr_speed && tr_step < tr_total; s++) {
-        // reverse = play the steps back-to-front (flips direction / CW<->CCW)
-        tr_draw_step(tr_reverse ? (UWORD)(tr_total - 1u - tr_step) : tr_step);
+        // reverse = play the [tr_min, tr_total) window back-to-front (flips
+        // direction / CW<->CCW) — same steps as forward, just reversed order, so
+        // min/max always select the same portion regardless of direction.
+        tr_draw_step(tr_reverse ? (UWORD)(tr_total - 1u - tr_step + tr_min) : tr_step);
         tr_step++;
     }
 

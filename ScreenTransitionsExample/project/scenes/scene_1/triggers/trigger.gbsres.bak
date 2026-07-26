@@ -16,14 +16,8 @@
         "effect": "noise",
         "source": "scene",
         "sceneId": "0133ec9c-d768-4321-a729-704edb4f05f9",
-        "srcX": {
-          "type": "number",
-          "value": 35
-        },
-        "srcY": {
-          "type": "number",
-          "value": 19
-        },
+        "srcX": 35,
+        "srcY": 19,
         "speed": {
           "type": "number",
           "value": 1
