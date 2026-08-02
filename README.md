@@ -23,6 +23,7 @@ https://github.com/user-attachments/assets/448a32b9-21ad-4d8c-aacb-99ae302bcca1
 4. [Size Limits and Restrictions](#size-limits-and-restrictions)
 5. [Events Reference](#events-reference)
 6. [Memory Footprint](#memory-footprint)
+7. [License](#license)
 
 ---
 
@@ -184,6 +185,7 @@ Rebuilds a scene from a filled screen using the chosen pattern.
 
 ## Memory Footprint
 
+- **WRAM:** a single small block of transition state, shared by all effects — which is why only one transition can run at a time. It does not scale with the number of transition types enabled.
 - **SRAM added:** 0 bytes.
 - **ROM:** depends on which transition types are enabled — each type you switch off under Engine Settings removes its code from the build. All effects live in banked ROM.
 - Using the plugin's events additionally compiles a small, fixed amount of GBVM script per call into your project's script banks, regardless of which effect is chosen.
