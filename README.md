@@ -1,236 +1,194 @@
-# Screen Transitions Plugin (GB Studio 4.3+)
+# gbs-ScreenTransitionsPlugin
 
-A collection of tile-based screen transitions for GB Studio, provided as two
-events under the **Screen** group:
+**Version 1.0.0 — Requires GB Studio ≥ 4.3.0**
 
-- **Screen Transition Out (to fill)** — dissolves the current scene into a
-  solid fill (black / white / any tile).
-- **Screen Transition In (reveal scene)** — rebuilds a scene in the same family
-  of patterns.
+A collection of tile-based screen transitions for GB Studio, provided as two events under the **Screen** group:
 
+- **Screen Transition Out (to fill)** — dissolves the current scene into a solid fill (black, white, or any tile).
+- **Screen Transition In (reveal scene)** — rebuilds a scene in the same family of patterns.
 
+A transition **blocks the script that started it** until it finishes, exactly like the built-in *Wait* or *Camera Move* events, while music and other threads keep running. Background transitions track the live scroll every frame, so they always line up with the visible screen on scrolled scenes.
 
 https://github.com/user-attachments/assets/f7456ac3-d21e-49d4-be9c-52976a9532c2
 
-
-
 https://github.com/user-attachments/assets/448a32b9-21ad-4d8c-aacb-99ae302bcca1
 
+---
 
+## Table of Contents
 
-## How it works
+1. [Concepts](#concepts)
+2. [Project Setup](#project-setup)
+3. [Engine Settings](#engine-settings)
+4. [Size Limits and Restrictions](#size-limits-and-restrictions)
+5. [Events Reference](#events-reference)
+6. [Memory Footprint](#memory-footprint)
 
-Each transition runs at **runtime as a single waitable VM function**
-(`screen_transition_update`, driven by `VM_INVOKE`). The engine advances the
-effect a few steps per frame and yields in between, so the invoking script
-**pauses until the transition finishes** — exactly like the built-in *Wait* or
-*Camera Move* events — while music and other threads keep running.
+---
 
-This replaces the approach of baking every tile write into GBVM
-script. The benefits:
+## Concepts
 
-- **Tiny script footprint** — a transition is a handful of `VM_SET_CONST` +
-  `VM_INVOKE` bytes regardless of effect, so any number of them fit in one
-  script (no bank-overflow, no need to split heavy effects across scenes).
-- **Proper waiting** — the script blocks on the transition, no manual `Wait`s.
-- **Automatic scroll tracking** — background transitions read the live scroll
-  each frame, so they always line up with the visible screen on scrolled scenes
-  (no "follow scroll" toggle needed).
+### Transition types
 
-This is a self-contained **engine plugin**
+Only one effect per reverse-pair is listed — the complement (opposite side, close instead of open, shrink instead of grow, counter-clockwise) is the same effect with **Direction = Reversed**.
 
-## Transitions
+| Effect | Description |
+|---|---|
+| **Wipe right** | Horizontal wipe (reversed = leftward). |
+| **Wipe down** | Vertical wipe (reversed = upward). |
+| **Open horizontal / vertical** | Curtain opening from the centre (reversed = curtain close). |
+| **Iris out** | Box iris opening from the centre (reversed = close). |
+| **Diagonal (vertical range)** | A straight front line spanning top↔bottom, swept sideways. **Initial angle** tilts it: 0 = "/", 128 = vertical, 255 = "\". |
+| **Diagonal (horizontal range)** | The transpose — a front line spanning left↔right, swept downward. **Initial angle**: 0 = "/", 128 = horizontal, 255 = "\". Between the two you can aim the diagonal at any orientation. |
+| **Checker** | Two-pass checkerboard dissolve. |
+| **Snake horizontal / vertical** | Serpentine sweep, one tile per step. Use a higher *Steps per frame* (6–12) as it covers every tile. |
+| **Spiral** | Serpentine spiral, one tile per step, clockwise from the top-left corner winding inward. |
+| **Blinds horizontal / vertical** | Venetian blinds — several bars close at once. |
+| **Four square** | Chunky 16×16-pixel (2×2 tile) block wipe. |
+| **Diamond out** | Diamond iris opening from the centre (reversed = close). |
+| **Clock** | Radial sweep from the centre, clockwise from 12 o'clock (reversed = counter-clockwise). |
+| **Fan** | Four-blade fan / pinwheel (reversed = counter-clockwise). |
+| **X** | An X (both diagonals) that thickens outward. |
+| **Noise** | Random dissolve, seeded differently each run. |
+| **Mask grow** | The reveal order is driven by a screen-sized **mask scene** — see below. |
 
-Only one effect per reverse-pair is listed — the complement (opposite side,
-close instead of open, shrink instead of grow, counter-clockwise) is the same
-effect with **Direction = Reversed** (see below).
+### Mask transitions
 
-- `wipe_right` — horizontal wipe (reversed = leftward).
-- `wipe_down` — vertical wipe (reversed = upward).
-- `open_h` / `open_v` — horizontal / vertical curtain, opening from the centre
-  (reversed = curtain close).
-- `iris_out` — box iris opening from the centre (reversed = close).
-- `diag_tl` — **Diagonal (vertical range)**: a straight front line spanning
-  top↔bottom, swept sideways (one Bresenham line per step). **Initial angle**
-  tilts it: 0 = "/", 128 = vertical, 255 = "\".
-- `diag_h` — **Diagonal (horizontal range)**: the transpose — a front line
-  spanning left↔right, swept downward. **Initial angle**: 0 = "/", 128 =
-  horizontal, 255 = "\". Between the two effects you can aim the diagonal at any
-  orientation. Both reverse to sweep from the opposite side.
-- `checker` — two-pass checkerboard dissolve.
-- `snake_h` / `snake_v` — serpentine sweep, one tile per step (use a higher
-  *Steps per frame*, e.g. 6–12, as it covers every tile).
-- `spiral` — serpentine spiral, one tile per step, clockwise from the top-left
-  corner winding inward to the centre.
-- `blinds_h` / `blinds_v` — venetian blinds: several bars close at once.
-- `four_sq` — chunky 16×16-pixel (2×2 tile) block wipe.
-- `diamond_out` — diamond iris opening from the centre (reversed = close).
-- `clock` — radial sweep from the centre, clockwise from 12 o'clock (reversed =
-  counter-clockwise).
-- `fan4` — four-blade fan / pinwheel (reversed = counter-clockwise).
-- `x` — an X (both diagonals) that thickens outward.
-- `noise` — random dissolve, seeded differently each run.
-- `mask_grow` — the reveal order is driven by a **screen-sized mask scene**: each
-  screen tile is revealed by the tile *index* at the matching position in the
-  mask scene, one distinct index per step — so the number of steps equals the
-  mask background's **tileset tile count**. Grow reveals the lowest indices first
-  (reversed = shrink, highest first). Draw a gradient in a scene (each step a
-  different tile) and it becomes the transition shape. The mask is independent of
-  the fill/reveal content, so it can drive a fill, a this-scene reveal, or a
-  scene copy — just pick the **Mask scene**.
+**Mask grow** reveals each screen tile according to the tile *index* at the matching position in a mask scene, one distinct index per step, so the number of steps equals the mask background's tileset tile count. Grow reveals the lowest indices first; reversed (shrink) reveals the highest first.
 
-## Layers
+Draw a gradient in a scene — each step a different tile — and it becomes the transition shape. The mask is independent of the fill or reveal content, so it can drive a fill, a this-scene reveal, or a scene copy; just pick the **Mask scene**.
 
-- **Background** — the *Out* fill, the *this-scene* reveal (refresh), and the
-  *background* option of an *another-scene* reveal work on the scene's background
-  tilemap and track the current scroll automatically.
-- **Overlay (window)** — used by the *Out* overlay fill and the *overlay* option
-  of an *another-scene* reveal. The window sits above the background, isn't
-  scrolled, and (with its tilemap) survives a Change Scene — which is what makes
-  the seamless scene change below possible. Overlay transitions show the window
-  covering the screen and leave it open; dismiss it with the stock **Hide
-  Overlay** event.
+### Layers
 
-## Revealing across a scene change
+- **Background** — used by the *Out* fill, the *this-scene* reveal, and the *background* option of an *another-scene* reveal. Tracks the current scroll automatically.
+- **Overlay (window)** — used by the *Out* overlay fill and the *overlay* option of an *another-scene* reveal. The window sits above the background, isn't scrolled, and survives a Change Scene, which is what makes seamless scene changes possible. Overlay transitions leave the window covering the screen; dismiss it with the stock **Hide Overlay** event.
 
-### Copy another scene (background or overlay)
+### Direction, angle and centre
 
-**Screen Transition In → Reveal = Another scene** copies a second scene's tiles
-in with the chosen pattern. Pick the **Layer**:
+- **Direction** — *Normal* or *Reversed / Counter-clockwise*. Reversed plays the effect's steps back-to-front, flipping a wipe to the opposite side, an iris close to open, and a clock / fan / spiral to counter-clockwise. Works on every effect.
+- **Initial angle (0–255)** — rotates where a **clock** or **fan** sweep starts (0 = 12 o'clock), or tilts the **diagonal**'s front line (0 = "/" down-right, 128 = vertical, 255 = "\" down-left).
+- **Custom centre point** — moves the pivot of **iris**, **diamond**, **clock**, **fan** and **mask** off the region centre. Tick *Custom centre point*, then set *Centre X / Y* in region-relative tiles; left unticked, the pivot auto-centres the region. The resolved centre is clamped to the region, so an out-of-range value snaps to the nearest edge.
+  - **Centre is absolute (world) position** — with a custom centre on the **background** layer, tick this to give *Centre X / Y* as world/map tiles; the current scroll is subtracted at runtime. Handy for centring an effect on a fixed point of a scrolled background. Only offered for background transitions, since the overlay isn't scrolled.
 
-- **Background** — morphs the current background into the source scene's tiles,
-  in place. Follow with **Change Scene** (fade = None) to that scene.
-- **Overlay** — primes the overlay with the *current* scene, shows it covering
-  the screen, morphs the target scene in, and **leaves the overlay open**.
-  Because the overlay survives a Change Scene, it keeps covering the background
-  while the new scene loads underneath — no flash.
+### Timing and framing
 
-Either way the two scenes must share a background tileset, and **Source X /
-Source Y** choose where in the source scene to pull tiles from — set them to the
-scroll (tile) position the target scene will be entered at, so the switch lines
-up.
+*Steps per frame* advances more of the effect each frame (faster); *Frames per step* waits extra frames between batches (slower).
+
+*Start frame* / *End frame* select the slice of the effect's steps to play. **Start frame** skips the earlier steps, so the region starts partly transitioned, and **End frame** stops it early — both clamped to the effect's own length, with **0** meaning "run to the end". An effect's length in steps varies by type: a wipe is one step per column, a snake or spiral one per tile. The same window is drawn regardless of **Direction** — *Reversed* just plays it back-to-front, so both directions cover exactly the same tiles.
+
+---
+
+## Project Setup
+
+Copy `src/ScreenTransitionsPlugin` into your project's `plugins/` folder, then restart GB Studio. Compatibility variants ship inside that folder and are selected automatically.
+
+Add **Screen Transition Out** and **Screen Transition In** to your scripts wherever you would use a fade.
+
+### Revealing across a scene change: copy another scene
+
+**Screen Transition In → Reveal = Another scene** copies a second scene's tiles in with the chosen pattern. Pick the **Layer**:
+
+- **Background** — morphs the current background into the source scene's tiles, in place. Follow with **Change Scene** (fade = None) to that scene.
+- **Overlay** — primes the overlay with the *current* scene, shows it covering the screen, morphs the target scene in, and **leaves the overlay open**. Because the overlay survives a Change Scene, it keeps covering the background while the new scene loads underneath — no flash.
+
+Either way the two scenes must share a background tileset, and **Source X / Source Y** choose where in the source scene to pull tiles from. Set them to the scroll (tile) position the target scene will be entered at, so the switch lines up.
 
 Seamless A → B workflow using the **overlay** option:
 
-1. On scene **A**: **Screen Transition In**, Reveal = **Another scene**, Layer =
-   **Overlay**, Source scene = **B**, Source X/Y = B's entry scroll.
-2. **Change Scene** to B with **Fade = None**, positioned at that same scroll.
-   B loads behind the still-covering overlay.
-3. On scene **B**, dismiss the overlay with the stock **Hide Overlay** event
-   (and **Show Sprites** if you hid them). The overlay and the freshly-loaded
-   background are identical, so the reveal is seamless.
+1. On scene **A**: **Screen Transition In**, Reveal = **Another scene**, Layer = **Overlay**, Source scene = **B**, Source X/Y = B's entry scroll.
+2. **Change Scene** to B with **Fade = None**, positioned at that same scroll. B loads behind the still-covering overlay.
+3. On scene **B**, dismiss the overlay with the stock **Hide Overlay** event, and **Show Sprites** if you hid them. The overlay and the freshly-loaded background are identical, so the reveal is seamless.
 
-Sprites draw above both the background and the overlay, so the transition hides
-them (option); on the overlay path they stay hidden across the change (engine
-`hide_sprites` flag) until you Show Sprites.
+Sprites draw above both the background and the overlay, so the transition can hide them; on the overlay path they stay hidden across the change until you Show Sprites.
 
-### Cover + fade-in on scene entry
+### Revealing across a scene change: cover + fade-in
 
-For any scenes (no shared tileset needed): Transition Out on scene A, Fade Out,
-Change Scene to B (fade = None), and on scene B set *On Init* auto-fade to
-**Manual** with the first event **Screen Transition In → Cover + fade in first**.
-It fills the screen, does an instant palette fade-in, then reveals B from ROM.
+This works for any pair of scenes, with no shared tileset needed. Transition Out on scene A, Fade Out, Change Scene to B with fade = None, and on scene B set *On Init* auto-fade to **Manual** with the first event **Screen Transition In → Cover + fade in first**. It fills the screen, does an instant palette fade-in, then reveals B.
 
-## Fields
+---
 
-**Out**: Transition · Layer · Fill (black `202` / white `201` / custom) · Steps
-per frame · Frames per step · Hide sprites · CGB fill palette · Region.
+## Engine Settings
 
-**In**: Transition · Reveal (this scene / another scene) · Layer (another-scene
-only: overlay or background) · Source scene · Source X/Y · Steps per frame ·
-Frames per step · Cover + fade in first (+ tile, this-scene only) · Hide/Show
-sprites · Region.
+Found under **Settings → Engine → Screen Transitions**.
 
-*Steps per frame* advances more of the effect each frame (faster); *Frames per
-step* waits extra frames between batches (slower).
+Each transition type has its own on/off toggle, all on by default. Turning one off removes that effect's code from the compiled ROM, so you only pay for what you use. If a script still uses a transition whose type is disabled, the project fails to build with a clear error naming the effect — enable the type, or pick another effect, and rebuild.
 
-*Start frame* / *End frame* select the slice of the effect's steps to play:
-**Start frame** skips the earlier steps (so the region starts partly
-transitioned) and **End frame** stops it early — clamped to the effect's own
-length, with **0** meaning "run to the end". (An effect's length in steps varies
-by type — e.g. a wipe is one step per column, a snake/spiral one per tile.) The
-same `[Start, End)` window is drawn regardless of **Direction** — *Reversed* just
-plays that window back-to-front, so both directions cover exactly the same tiles.
+---
 
-### Direction, angle & centre
+## Size Limits and Restrictions
 
-Three extra parameters (on both events) let you retarget most effects:
+- **Only one transition runs at a time.** Don't invoke two concurrently from different threads.
+- **Copying another scene requires a shared background tileset** between the two scenes.
+- **Mask scenes should be drawn larger than the screen** when using a custom centre, so the mask still covers everything at the chosen offset. The mask size is not validated.
+- Fill tiles **202** (black) and **201** (white) are the UI tiles GB Studio loads into VRAM every scene, so they are always available as solid fills.
+- Compatibility variants are included and selected automatically when **Screen Scroll Plugin**, **Continuous Scene Plugin**, **Metatile Plugin**, or Metatile combined with either of the first two, is installed alongside this plugin. No configuration is needed.
+- With **Metatile Plugin**, copy and mask *sources* should be **normal** scenes, not metatile scenes. Fill and revealing the current (metatile) scene are fully supported.
+- Triple combinations of other plugins are not shipped as dedicated variants.
 
-- **Direction** — *Normal* or *Reversed / Counter-clockwise*. Reversed plays the
-  effect's steps back-to-front, so it flips a wipe to the opposite side, an iris
-  *close* to *open*, and a clock / fan / spiral to counter-clockwise. Works on
-  every effect.
-- **Initial angle (0-255)** — rotates where a **clock** / **fan** sweep starts
-  (0 = 12 o'clock), or tilts the **diagonal**'s front line (0 = "/" down-right,
-  128 = vertical, 255 = "\" down-left).
-- **Custom centre point** — moves the pivot of **iris**, **diamond**, **clock**,
-  **fan** and **mask** off the region centre (tick *Custom centre point*, then set
-  *Centre X / Y* in region-relative tiles). Left unticked, the pivot auto-centres
-  the region. All accept variables/expressions. The resolved centre is clamped to
-  the region (0…W-1, 0…H-1), so an out-of-range value snaps to the nearest edge.
-  For **mask**, the centre is the screen point the mask scene's centre tile aligns
-  to — draw the mask larger than the screen so it still covers everything at the
-  chosen offset (the plugin does not validate the mask size).
-  - **Centre is absolute (world) position** — with a custom centre on the
-    **background** layer, tick this to give *Centre X / Y* as world/map tiles; the
-    plugin subtracts the current scroll at runtime to get the on-screen pivot.
-    Handy for centring an effect on a fixed point of a scrolled background. Only
-    offered for background transitions (the overlay isn't scrolled); leave it off
-    for screen-relative tiles.
+---
 
-Every numeric field (region X/Y/W/H, steps/frames, source X/Y, fill tile id, CGB
-palette) is a **value** field, so it accepts a **variable** or expression as well
-as a constant — the transition reads them at runtime.
+## Events Reference
 
-## Enabling / disabling transition types (ROM size)
+Both events appear under the **Screen** group in the script editor.
 
-Each transition type has an on/off toggle under **Settings → Engine → Screen
-Transitions** (all on by default). Turning one off removes that effect's code
-from the compiled ROM, so you only pay for what you use. If a script still uses a
-transition whose type is disabled, the project fails to build with a clear error
-naming the effect — enable the type (or pick another effect) and rebuild.
+Every numeric field — region X/Y/W/H, steps and frames, source X/Y, fill tile id, CGB palette — is a **value** field, so it accepts a variable or expression as well as a constant, read at runtime.
 
-## Compatibility with other engine plugins
+---
 
-The plugin adds no stock engine files of its own, so it never *conflicts* with
-other plugins — but a few plugins change how the background is addressed or
-stored, which the transition code has to account for. GB Studio's `engineAlt`
-mechanism automatically swaps in a matching build of `screen_transitions.c` when
-one of these plugins is detected (via `engineAltRules` in `plugin.json`); nothing
-to configure:
+### Screen Transition Out (to fill)
 
-| Also installed | Variant (`engineAlt/…`) | What it changes |
-|---|---|---|
-| **Screen Scroll Plugin** | `Scr` | These plugins shift the visible background inside VRAM by `bkg_offset_x/y` (hardware scroll = `draw_scroll + TILE_TO_PX(bkg_offset)`). The variant adds that offset to background tile **writes** so the effect still lines up with the screen. |
-| **Continuous Scene Plugin** | `Cont` | Same offset fix as `Scr` (identical source). |
-| **Metatile Plugin** | `M` | A metatile scene stores a metatile-*index* map, so the *reveal this scene* (REFRESH) path resolves each visible tile through the live SRAM metatile map + metatile definitions (mirrors `load_metatile_row`), for both `METATILE_SIZE_8` and `_16`. Fill, overlay, and copy/mask from **normal** scenes are unchanged. |
-| **Metatile + Screen Scroll** | `M_Scr` | Combined build: applies the `bkg_offset` VRAM write shift **and** the metatile REFRESH resolution together (matches Metatile's own combined engine — read the map at logical coords, write VRAM at `x + bkg_offset`). Selected automatically when both plugins are present. |
-| **Metatile + Continuous Scene** | `M_Cont` | Same combined build as `M_Scr` (identical source). |
+Dissolves the current screen into a solid fill using the chosen pattern.
 
-The combined rules are listed before the single-plugin rules, so when Metatile is
-installed alongside an offset-scroll plugin the combined variant wins.
+| Field | Description |
+|-------|-------------|
+| Transition | Which effect to play. |
+| Layer | Background or overlay. |
+| Fill | The tile to fill with: black (202), white (201), or a custom tile id. |
+| Steps per frame | How much of the effect advances each frame — higher is faster. |
+| Frames per step | Extra frames waited between batches — higher is slower. |
+| Hide sprites | Hide sprites for the duration of the transition. |
+| CGB fill palette | Palette applied to the fill tiles on Game Boy Color. |
+| Region | The X/Y/W/H tile rectangle the effect covers. |
+| Direction | Normal, or Reversed / Counter-clockwise. |
+| Initial angle | Start angle for clock and fan, or tilt for the diagonals (0–255). |
+| Custom centre point / Centre X / Y | Move the pivot off the region centre. |
+| Centre is absolute (world) position | Treat Centre X/Y as world tiles on the background layer. |
+| Start frame / End frame | Play only a slice of the effect's steps; 0 = run to the end. |
 
-Notes and limits:
+---
 
-- **Metatile** copy/mask *sources* should be **normal** scenes, not metatile
-  scenes — the copy/mask read path expects a raw tilemap. Fill and revealing the
-  current (metatile) scene are fully supported.
-- Other plugin **triple**-combinations aren't shipped as dedicated variants; ask
-  if you need one.
+### Screen Transition In (reveal scene)
 
-## Install
+Rebuilds a scene from a filled screen using the chosen pattern.
 
-Copy `src/ScreenTransitionsPlugin` into your project's `plugins/` folder, then
-restart GB Studio. The `engineAlt` variants ship inside that folder and are
-selected automatically — no extra steps.
+| Field | Description |
+|-------|-------------|
+| Transition | Which effect to play. |
+| Reveal | This scene, or another scene. |
+| Layer | Overlay or background (another-scene reveals only). |
+| Source scene | The scene to copy tiles from (another-scene reveals only). |
+| Source X / Source Y | Where in the source scene to pull tiles from — normally the target scene's entry scroll position. |
+| Steps per frame | How much of the effect advances each frame — higher is faster. |
+| Frames per step | Extra frames waited between batches — higher is slower. |
+| Cover + fade in first | Fill the screen and fade the palette in before revealing (this-scene reveals only, with a fill tile field). |
+| Hide sprites / Show sprites | Control sprite visibility across the transition. |
+| Region | The X/Y/W/H tile rectangle the effect covers. |
+| Direction | Normal, or Reversed / Counter-clockwise. |
+| Initial angle | Start angle for clock and fan, or tilt for the diagonals (0–255). |
+| Custom centre point / Centre X / Y | Move the pivot off the region centre. |
+| Centre is absolute (world) position | Treat Centre X/Y as world tiles on the background layer. |
+| Start frame / End frame | Play only a slice of the effect's steps; 0 = run to the end. |
+| Mask scene | The scene whose tile indices drive a mask transition. |
 
-## Notes
+---
 
-- Fill tiles `202`/`201` are the UI black/white tiles GB Studio loads into VRAM
-  every scene, so they're always available as solid fills.
-- Sprites are hidden/shown with the stock `VM_HIDE_SPRITES` / `VM_SHOW_SPRITES`.
-- Only one transition runs at a time (shared state); don't invoke two
-  concurrently from different threads.
+## Memory Footprint
+
+- **SRAM added:** 0 bytes.
+- **ROM:** depends on which transition types are enabled — each type you switch off under Engine Settings removes its code from the build. All effects live in banked ROM.
+- Using the plugin's events additionally compiles a small, fixed amount of GBVM script per call into your project's script banks, regardless of which effect is chosen.
+
+---
 
 ## License
 
