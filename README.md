@@ -183,6 +183,55 @@ Rebuilds a scene from a filled screen using the chosen pattern.
 
 ---
 
+<!-- SETTINGCOST:BEGIN -->
+### What each engine setting costs
+
+Every setting here changes what gets compiled. Figures are what you **get back by
+turning the setting off**; rows marked *off by default* show what turning it **on**
+costs instead, and sliders show the cost per step. A dash means that budget does not
+move.
+
+| Setting | Bank 0 | WRAM | Banked ROM |
+|---|---|---|---|
+| Wipe | — | — | **59 B** |
+| Curtain | — | — | **267 B** |
+| Iris | — | — | **390 B** |
+| Diagonal | — | — | **391 B** |
+| Checkerboard | — | — | **88 B** |
+| Snake | — | — | **110 B** |
+| Spiral | — | — | **331 B** |
+| Blinds | — | — | **135 B** |
+| 4-Square | — | — | **122 B** |
+| Diamond | — | — | **11 B** |
+| Clock | — | — | **46 B** |
+| Random Noise | — | — | **145 B** |
+| 4-Blade Fan | — | — | **156 B** |
+| X (cross) | — | — | **95 B** |
+| Mask (scene as mask) | — | — | **243 B** |
+
+Turning off every on-by-default switch above frees **2,589 B** of banked ROM — the full
+span between this plugin at its fullest and stripped to nothing. Treat it as a
+ceiling rather than a recipe: you keep whatever your game actually uses.
+
+<details><summary>How these were measured</summary>
+
+GB Studio 4.3.0-e1. Each of this plugin's `engine/src/**/*.c` files was compiled with
+the toolchain and flags GB Studio itself uses (`lcc -msm83:gb
+-Wf--max-allocs-per-node 3000 -DHUGE_TRACKER -DRUMBLE_ENABLE=0x08u`) against a merged
+include tree, once with every setting at its default and once per setting toggled. The
+SDCC object files' area records were then diffed: `_HOME` is bank 0,
+`_DATA`/`_INITIALIZED`/`_BSS` are WRAM, and `_CODE*`/`_CONST`/`_LIT`/`_INITIALIZER` are
+banked ROM.
+
+Two caveats. Only this plugin's own engine sources are measured, so a setting that also
+changes a struct shared with stock engine files can move a few more bytes in files the
+plugin does not ship. And each setting is toggled on its own: a handful measure slightly
+*negative* because enabling their code lets the compiler drop a fallback path elsewhere,
+and settings that gate other settings only show their own contribution.
+
+</details>
+<!-- SETTINGCOST:END -->
+
 ## Memory Footprint
 
 - **WRAM:** a single small block of transition state, shared by all effects — which is why only one transition can run at a time. It does not scale with the number of transition types enabled.
