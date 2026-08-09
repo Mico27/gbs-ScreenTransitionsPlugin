@@ -24,6 +24,8 @@ https://github.com/user-attachments/assets/448a32b9-21ad-4d8c-aacb-99ae302bcca1
 5. [Events Reference](#events-reference)
 6. [Memory Footprint](#memory-footprint)
 7. [License](#license)
+8. [Bank 0 (HOME) Usage](#bank-0-home-usage)
+9. [Changelog](#changelog)
 
 ---
 
