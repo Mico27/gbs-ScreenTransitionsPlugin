@@ -276,3 +276,20 @@ the core compiles, move it independently of this plugin.
 
 </details>
 <!-- BANK0:END -->
+
+## Changelog
+
+Grouped by the date each change was merged into the official
+[gb-studio-plugins](https://github.com/gb-studio-dev/gb-studio-plugins) repository.
+
+Only bug fixes, new features and feature changes are listed. Engine version
+bumps, patch regeneration, packaging fixes and documentation edits are omitted.
+
+### 2026-07-26
+
+- Initial release.
+- Transitions take Direction, angle and centre point parameters, with a custom centre point supported by the mask transitions.
+- Per-transition-type enable/disable engine settings, so unused transitions cost no ROM.
+- Start step and end step parameters for compositing.
+- Support for the ContinuousScene, ScreenScroll and Metatile plugins.
+- Fixed copying a metatile scene to the overlay.
