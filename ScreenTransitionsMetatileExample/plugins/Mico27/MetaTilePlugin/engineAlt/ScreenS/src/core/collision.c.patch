@@ -2,13 +2,14 @@ Index: src/core/collision.c
 ===================================================================
 --- src/core/collision.c
 +++ src/core/collision.c
-@@ -1,19 +1,15 @@
+@@ -1,20 +1,16 @@
  #pragma bank 255
  
  #include "collision.h"
 +#include "meta_tiles.h"
 +#include "math.h"
 +#include "data/states_defines.h"
+ #include "scene_transition.h"
  
  UBYTE tile_hit_x = 0;
  UBYTE tile_hit_y = 0;
@@ -18,7 +19,7 @@ Index: src/core/collision.c
 -    tile_hit_y = ty_start;
 -
 -    if (tile_hit_x >= image_tile_width || tile_hit_y >= image_tile_height) {
--      return COLLISION_ALL & tile_mask ? COLLISION_ALL : 0;
+-      return (!scene_transition_enabled && (COLLISION_ALL & tile_mask)) ? COLLISION_ALL : 0;
 -    }
 -
 +UBYTE legacy_tile_col_test_range_y(UBYTE tile_mask, UBYTE tx, UBYTE ty_start, UBYTE ty_end) NONBANKED {
@@ -26,7 +27,7 @@ Index: src/core/collision.c
      UBYTE inc = UBYTE_LESS_THAN(ty_start, ty_end);
      SWITCH_ROM(collision_bank);
      UBYTE* tile_ptr = collision_ptr + (ty_start * (UINT16)image_tile_width) + tx;
-@@ -41,16 +37,49 @@
+@@ -42,16 +38,49 @@
      SWITCH_ROM(_save);
      return 0;
  }
@@ -39,7 +40,7 @@ Index: src/core/collision.c
 +    tile_hit_y = ty_start;
  
      if (tile_hit_x >= image_tile_width || tile_hit_y >= image_tile_height) {
-       return COLLISION_ALL & tile_mask ? COLLISION_ALL : 0;
+       return (!scene_transition_enabled && (COLLISION_ALL & tile_mask)) ? COLLISION_ALL : 0;
      }
 +    if (metatile_collision_bank) {
 +#if METATILE_SIZE == METATILE_SIZE_16
@@ -66,7 +67,7 @@ Index: src/core/collision.c
 +                tile_hit_y--;
 +            }
 +            if (tile_hit_y >= image_tile_height) {
-+                return COLLISION_ALL & tile_mask ? COLLISION_ALL : 0;
++                return (!scene_transition_enabled && (COLLISION_ALL & tile_mask)) ? COLLISION_ALL : 0;
 +            }
 +        }
 +        return 0;
@@ -79,7 +80,7 @@ Index: src/core/collision.c
      UBYTE inc = UBYTE_LESS_THAN(tx_start, tx_end);
      SWITCH_ROM(collision_bank);
      UBYTE* tile_ptr = collision_ptr + (ty * (UINT16)image_tile_width) + tx_start;
-@@ -77,4 +106,43 @@
+@@ -78,4 +107,43 @@
      }
      SWITCH_ROM(_save);
      return 0;
@@ -89,7 +90,7 @@ Index: src/core/collision.c
 +    tile_hit_x = tx_start;
 +    tile_hit_y = ty;
 +    if (tile_hit_x >= image_tile_width || tile_hit_y >= image_tile_height) {
-+      return COLLISION_ALL & tile_mask ? COLLISION_ALL : 0;
++      return (!scene_transition_enabled && (COLLISION_ALL & tile_mask)) ? COLLISION_ALL : 0;
 +    }
 +    if (metatile_collision_bank) {
 +        UWORD metatile_y_offset = METATILE_Y_OFFSET(ty);
@@ -116,7 +117,7 @@ Index: src/core/collision.c
 +                tile_hit_x--;
 +            }
 +            if (tile_hit_x >= image_tile_width) {
-+                return COLLISION_ALL & tile_mask ? COLLISION_ALL : 0;
++                return (!scene_transition_enabled && (COLLISION_ALL & tile_mask)) ? COLLISION_ALL : 0;
 +            }
 +        }
 +        return 0;

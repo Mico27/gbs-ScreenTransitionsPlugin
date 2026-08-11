@@ -8,21 +8,11 @@ Index: src/states/adventure.c
  #include "vm.h"
  #include "math.h"
 +#include "meta_tiles.h"
- #include "continuous_scene.h"
  
  // Feature Flags --------------------------------------------------------------
  // Optional feature flags, set in 'state_defines.h'
-@@ -484,9 +485,8 @@
-             camera_deadzone_y == adv_camera_deadzone_y) {
-             adv_camera_transitioning = FALSE;
-         }
-     }
--
- }
  
- static void handle_dir_input(void) {
-     WORD target_x = 0;
-@@ -658,8 +658,11 @@
+@@ -656,8 +657,11 @@
                              }
                          }
                      }
@@ -34,7 +24,7 @@ Index: src/states/adventure.c
          } else if (delta.x < 0) {
              UBYTE tile_x = SUBPX_TO_TILE(new_x + PLAYER.bounds.left);
              UBYTE tile = tile_col_test_range_y(COLLISION_RIGHT, tile_x, tile_start, tile_end);
-@@ -686,8 +689,11 @@
+@@ -684,8 +688,11 @@
                              }
                          }
                      }
@@ -46,7 +36,7 @@ Index: src/states/adventure.c
          }
  
      finally_update_x:
-@@ -733,8 +739,11 @@
+@@ -731,8 +738,11 @@
                              }
                          }
                      }
@@ -58,7 +48,7 @@ Index: src/states/adventure.c
          } else if (delta.y < 0) {
              UBYTE tile_y = SUBPX_TO_TILE(new_y + PLAYER.bounds.top);
              UBYTE tile = tile_col_test_range_x(COLLISION_BOTTOM, tile_y, tile_start, tile_end);
-@@ -761,8 +770,11 @@
+@@ -759,8 +769,11 @@
                              }
                          }
                      }
@@ -70,7 +60,7 @@ Index: src/states/adventure.c
          }
  
      finally_update_y:
-@@ -836,8 +848,11 @@
+@@ -829,8 +842,11 @@
  
      if (mask & COL_CHECK_TRIGGERS)
      {

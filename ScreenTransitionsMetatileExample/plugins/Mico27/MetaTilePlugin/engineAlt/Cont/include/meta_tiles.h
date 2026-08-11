@@ -10,6 +10,14 @@
 #define METATILE_SIZE_8     0
 #define METATILE_SIZE_16    1
 
+#define METATILE_ENTER_BOUNDING_BOX  0
+#define METATILE_ENTER_ORIGIN_POINT  1
+
+// Default to the legacy bounding-box behaviour when the engine field is absent
+#ifndef METATILE_ENTER_DETECTION
+#define METATILE_ENTER_DETECTION METATILE_ENTER_BOUNDING_BOX
+#endif
+
 #if METATILE_SIZE == METATILE_SIZE_16
 
 #define METATILE_X_OFFSET(x) (x >> 1)
@@ -84,6 +92,5 @@ void replace_meta_tile(UBYTE x, UBYTE y, UBYTE tile_id, UBYTE commit) BANKED;
 void reset_meta_tile(UBYTE x, UBYTE y, UBYTE commit) BANKED;
 UBYTE metatile_overlap_at_intersection(rect16_t *bb, upoint16_t *offset) BANKED;
 void on_player_metatile_collision(UBYTE tile_x, UBYTE tile_y, UBYTE direction) BANKED;
-void reset_collision_cache(UBYTE direction) BANKED;
 
 #endif

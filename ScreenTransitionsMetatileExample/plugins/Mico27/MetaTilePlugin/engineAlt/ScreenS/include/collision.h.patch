@@ -2,10 +2,19 @@ Index: include/collision.h
 ===================================================================
 --- include/collision.h
 +++ include/collision.h
-@@ -23,8 +23,34 @@
- #define DIRECTION_TOP_RIGHT_FLAG 0x20
- #define DIRECTION_BOTTOM_RIGHT_FLAG 0x40
- #define DIRECTION_BOTTOM_LEFT_FLAG 0x80
+@@ -4,24 +4,55 @@
+ #include <gbdk/platform.h>
+ 
+ #include "math.h"
+ #include "bankdata.h"
++#include "data/states_defines.h"
+ 
+ #define COLLISION_TOP 0x1
+ #define COLLISION_BOTTOM 0x2
+ #define COLLISION_LEFT 0x4
+ #define COLLISION_RIGHT 0x8
+ #define COLLISION_ALL 0xF
+ #define TILE_PROP_LADDER 0x10
  
 +#define METATILE_SIZE_8     0
 +#define METATILE_SIZE_16    1
@@ -37,21 +46,19 @@ Index: include/collision.h
  extern unsigned char *collision_ptr;
  extern UBYTE image_tile_width;
  extern UBYTE image_tile_height;
-@@ -33,8 +59,13 @@
- extern UBYTE tile_hit_y;
  
- extern UBYTE continuous_scene_enabled;
+ extern UBYTE tile_hit_x;
+ extern UBYTE tile_hit_y;
  
 +extern uint8_t __at(SRAM_COLLISION_DATA_PTR) sram_collision_data[COLLISION_DATA_SIZE];
 +extern uint8_t __at(SRAM_MAP_DATA_PTR) sram_map_data[MAX_MAP_DATA_SIZE];
 +extern UBYTE metatile_collision_bank;
 +extern UBYTE image_tile_width_bit;
-+
+ extern UBYTE scene_transition_enabled;
+ 
  /**
   * Check if point is within positioned bounding box.
-  *
-  * @param bb Pointer to bounding box
-@@ -74,10 +105,19 @@
+@@ -63,10 +94,19 @@
   * @param ty Top tile
   * @return Tile value, 0 if no collisions, COLLISION_ALL if out of bounds
   */
@@ -69,7 +76,27 @@ Index: include/collision.h
 +            return ReadBankedUBYTE(collision_ptr + (ty * (UINT16)image_tile_width) + tx, collision_bank);
 +        }
 +    }
-     return COLLISION_ALL;
+     return (scene_transition_enabled)? 0: COLLISION_ALL;
  }
  
  /**
+@@ -78,9 +118,9 @@
+  * @param ty_start Starting tile y-coordinate
+  * @param ty_end Ending tile y-coordinate
+  * @return First matching tile value found, or 0 if none matched, COLLISION_ALL if out of bounds
+  */
+-UBYTE tile_col_test_range_y(UBYTE tile_mask, UBYTE tx, UBYTE ty_start, UBYTE ty_end) NONBANKED;
++UBYTE tile_col_test_range_y(UBYTE tile_mask, UBYTE tx, UBYTE ty_start, UBYTE ty_end) BANKED;
+ 
+ /**
+  * Test for a tile matching mask in a horizontal range from tx_start to tx_end at row ty.
+  * Updates globals tile_hit_x and tile_hit_y which can be read afterwards to determine which tile matched
+@@ -90,7 +130,7 @@
+  * @param tx_start Starting tile x-coordinate
+  * @param tx_end Ending tile x-coordinate
+  * @return First matching tile value found, or 0 if none matched, COLLISION_ALL if out of bounds
+  */
+-UBYTE tile_col_test_range_x(UBYTE tile_mask, UBYTE ty, UBYTE tx_start, UBYTE tx_end) NONBANKED;
++UBYTE tile_col_test_range_x(UBYTE tile_mask, UBYTE ty, UBYTE tx_start, UBYTE tx_end) BANKED;
+ 
+ #endif

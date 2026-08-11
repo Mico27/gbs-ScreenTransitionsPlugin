@@ -12,6 +12,7 @@
 #include "actor.h"
 #include "data/game_globals.h"
 #include "data_manager.h"
+#include "scene_transition.h"
 #include "data/states_defines.h"
 
 #if METATILE_SIZE == METATILE_SIZE_16
@@ -187,13 +188,13 @@ void vm_submap_metatiles(SCRIPT_CTX * THIS) OLDCALL BANKED {
 #else
         MemcpyBanked(sram_map_data + METATILE_MAP_OFFSET(dest_x, current_y), tilemap_ptr + (UWORD)(((source_y + i) * bkg.width) + source_x), width, bkg.tilemap.bank);
 #endif
-        if (commit){
-            bkg_address_offset = ((UWORD)get_bkg_xy_addr(dest_x & 31, current_y & 31)) - 0x9800;
+        if (commit && !is_transitioning_scene){
+            bkg_address_offset = ((UWORD)get_bkg_xy_addr((dest_x + bkg_offset_x) & 31, (current_y + bkg_offset_y) & 31)) - 0x9800;
             load_metatile_row(metatile_ptr, dest_x, current_y, width, metatile_bank);
             #ifdef CGB
                 if (_is_CGB) {
                     VBK_REG = 1;
-                    bkg_address_offset = ((UWORD)get_bkg_xy_addr(dest_x & 31, current_y & 31)) - 0x9800;
+                    bkg_address_offset = ((UWORD)get_bkg_xy_addr((dest_x + bkg_offset_x) & 31, (current_y + bkg_offset_y) & 31)) - 0x9800;
                     load_metatile_row(metatile_attr_ptr, dest_x, current_y, width, metatile_attr_bank);
                     VBK_REG = 0;
                 }
@@ -209,12 +210,12 @@ void vm_redraw_metatiles(SCRIPT_CTX * THIS) OLDCALL BANKED {
     UBYTE height = *(uint8_t *) VM_REF_TO_PTR(FN_ARG3);
     for (uint8_t i = 0; i < height; i++){
         UBYTE current_y = y + i;
-        bkg_address_offset = ((UWORD)get_bkg_xy_addr(x & 31, current_y & 31)) - 0x9800;
+        bkg_address_offset = ((UWORD)get_bkg_xy_addr((x + bkg_offset_x) & 31, (current_y + bkg_offset_y) & 31)) - 0x9800;
         load_metatile_row(metatile_ptr, x, current_y, width, metatile_bank);
         #ifdef CGB
             if (_is_CGB) {
                 VBK_REG = 1;
-                bkg_address_offset = ((UWORD)get_bkg_xy_addr(x & 31, current_y & 31)) - 0x9800;
+                bkg_address_offset = ((UWORD)get_bkg_xy_addr((x + bkg_offset_x) & 31, (current_y + bkg_offset_y) & 31)) - 0x9800;
                 load_metatile_row(metatile_attr_ptr, x, current_y, width, metatile_attr_bank);
                 VBK_REG = 0;
             }
@@ -265,13 +266,13 @@ static void impl_replace_meta_tile(UBYTE x, UBYTE y, UBYTE tile_id, UBYTE commit
     y -= y & 1;
 #endif
     sram_map_data[METATILE_MAP_OFFSET(x, y)] = tile_id;
-    if (commit){
+    if (commit && !is_transitioning_scene){
     #ifdef CGB
         if (_is_CGB) {
             VBK_REG = 1;
         #if METATILE_SIZE == METATILE_SIZE_16
             tile_map_offset = TILE_MAP_OFFSET(tile_id, x, y);
-            bkg_address_offset = ((UWORD)get_bkg_xy_addr(x & 31, y & 31)) - 0x9800;
+            bkg_address_offset = ((UWORD)get_bkg_xy_addr((x + bkg_offset_x) & 31, (y + bkg_offset_y) & 31)) - 0x9800;
             set_vram_byte((UBYTE*)(0x9800 + bkg_address_offset), ReadBankedUBYTE(metatile_attr_ptr + tile_map_offset, metatile_attr_bank));
             tile_map_offset++;
             bkg_address_offset = (bkg_address_offset & 0xFFE0) + ((bkg_address_offset + 1) & 31);
@@ -283,14 +284,14 @@ static void impl_replace_meta_tile(UBYTE x, UBYTE y, UBYTE tile_id, UBYTE commit
             bkg_address_offset = (bkg_address_offset & 0xFFE0) + ((bkg_address_offset + 1) & 31);
             set_vram_byte((UBYTE*)(0x9800 + bkg_address_offset), ReadBankedUBYTE(metatile_attr_ptr + tile_map_offset, metatile_attr_bank));
         #else
-            set_bkg_tile_xy(x, y, ReadBankedUBYTE(metatile_attr_ptr + tile_id, metatile_attr_bank));
+            set_bkg_tile_xy((x + bkg_offset_x) & 31, (y + bkg_offset_y) & 31, ReadBankedUBYTE(metatile_attr_ptr + tile_id, metatile_attr_bank));
         #endif
             VBK_REG = 0;
         }
     #endif
     #if METATILE_SIZE == METATILE_SIZE_16
         tile_map_offset = TILE_MAP_OFFSET(tile_id, x, y);
-        bkg_address_offset = ((UWORD)get_bkg_xy_addr(x & 31, y & 31)) - 0x9800;
+        bkg_address_offset = ((UWORD)get_bkg_xy_addr((x + bkg_offset_x) & 31, (y + bkg_offset_y) & 31)) - 0x9800;
         set_vram_byte((UBYTE*)(0x9800 + bkg_address_offset), ReadBankedUBYTE(metatile_ptr + tile_map_offset, metatile_bank));
         tile_map_offset++;
         bkg_address_offset = (bkg_address_offset & 0xFFE0) + ((bkg_address_offset + 1) & 31);
@@ -302,7 +303,7 @@ static void impl_replace_meta_tile(UBYTE x, UBYTE y, UBYTE tile_id, UBYTE commit
         bkg_address_offset = (bkg_address_offset & 0xFFE0) + ((bkg_address_offset + 1) & 31);
         set_vram_byte((UBYTE*)(0x9800 + bkg_address_offset), ReadBankedUBYTE(metatile_ptr + tile_map_offset, metatile_bank));
     #else
-        set_bkg_tile_xy(x, y, ReadBankedUBYTE(metatile_ptr + tile_id, metatile_bank));
+        set_bkg_tile_xy((x + bkg_offset_x) & 31, (y + bkg_offset_y) & 31, ReadBankedUBYTE(metatile_ptr + tile_id, metatile_bank));
     #endif
     }
 }

@@ -9,15 +9,14 @@ Index: src/core/data_manager.c
  #include "data/data_bootstrap.h"
 +#include "meta_tiles.h"
  #include "data/states_defines.h"
- #include "continuous_scene.h"
+ #include "scene_transition.h"
  #include "macro.h"
  
-@@ -346,8 +347,10 @@
-     // Load triggers
+@@ -346,8 +347,9 @@
      if (triggers_len != 0) {
          MemcpyBanked(&triggers, scn.triggers.ptr, sizeof(trigger_t) * triggers_len, scn.triggers.bank);
      }
-+
+ 
 +    metatile_reset();
      scene_transition_reset();
      scroll_reset();
