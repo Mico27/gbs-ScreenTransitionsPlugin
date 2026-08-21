@@ -1310,6 +1310,220 @@
         "direction": "reverse"
       },
       "id": "f8dcb1ce-2756-4bcd-a4cb-e9d258149df2"
+    },
+    {
+      "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
+      "args": {
+        "effect": "shrink",
+        "layer": "background",
+        "fill": "black",
+        "customTile": {
+          "type": "number",
+          "value": 0
+        },
+        "speed": {
+          "type": "number",
+          "value": 1
+        },
+        "hold": {
+          "type": "number",
+          "value": 4
+        },
+        "hideSprites": true,
+        "cgbPalette": {
+          "type": "number",
+          "value": 7
+        },
+        "x": {
+          "type": "number",
+          "value": 0
+        },
+        "y": {
+          "type": "number",
+          "value": 0
+        },
+        "width": {
+          "type": "number",
+          "value": 20
+        },
+        "height": {
+          "type": "number",
+          "value": 18
+        },
+        "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
+        "__collapse": true,
+        "maxFrame": {
+          "type": "number",
+          "value": 0
+        },
+        "direction": "forward"
+      },
+      "id": "18e838cd-a0b1-452c-b61d-f97bb23a59fc"
+    },
+    {
+      "command": "PT_EVENT_SCREEN_TRANSITION_IN",
+      "args": {
+        "effect": "shrink",
+        "source": "current",
+        "layer": "overlay",
+        "sceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
+        "srcX": {
+          "type": "number",
+          "value": 0
+        },
+        "srcY": {
+          "type": "number",
+          "value": 0
+        },
+        "speed": {
+          "type": "number",
+          "value": 1
+        },
+        "hold": {
+          "type": "number",
+          "value": 4
+        },
+        "coverFirst": false,
+        "coverTile": 202,
+        "hideSprites": true,
+        "showSprites": true,
+        "x": {
+          "type": "number",
+          "value": 0
+        },
+        "y": {
+          "type": "number",
+          "value": 0
+        },
+        "width": {
+          "type": "number",
+          "value": 20
+        },
+        "height": {
+          "type": "number",
+          "value": 18
+        },
+        "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
+        "__collapse": true,
+        "direction": "reverse",
+        "rimFill": "black",
+        "rimTile": {
+          "type": "number",
+          "value": 0
+        },
+        "rimPalette": {
+          "type": "number",
+          "value": 7
+        }
+      },
+      "id": "32bcf4ca-06d1-4165-897c-cbe9e6bbe907"
+    },
+    {
+      "command": "PT_EVENT_SCREEN_TRANSITION_OUT",
+      "args": {
+        "effect": "split",
+        "layer": "background",
+        "fill": "black",
+        "customTile": {
+          "type": "number",
+          "value": 0
+        },
+        "speed": {
+          "type": "number",
+          "value": 1
+        },
+        "hold": {
+          "type": "number",
+          "value": 4
+        },
+        "hideSprites": true,
+        "cgbPalette": {
+          "type": "number",
+          "value": 7
+        },
+        "x": {
+          "type": "number",
+          "value": 0
+        },
+        "y": {
+          "type": "number",
+          "value": 0
+        },
+        "width": {
+          "type": "number",
+          "value": 20
+        },
+        "height": {
+          "type": "number",
+          "value": 18
+        },
+        "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
+        "__collapse": true,
+        "maxFrame": {
+          "type": "number",
+          "value": 0
+        },
+        "direction": "forward"
+      },
+      "id": "d562ef12-aaa5-4108-9cfb-c9121260bfe8"
+    },
+    {
+      "command": "PT_EVENT_SCREEN_TRANSITION_IN",
+      "args": {
+        "effect": "split",
+        "source": "current",
+        "layer": "overlay",
+        "sceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
+        "srcX": {
+          "type": "number",
+          "value": 0
+        },
+        "srcY": {
+          "type": "number",
+          "value": 0
+        },
+        "speed": {
+          "type": "number",
+          "value": 1
+        },
+        "hold": {
+          "type": "number",
+          "value": 4
+        },
+        "coverFirst": false,
+        "coverTile": 202,
+        "hideSprites": true,
+        "showSprites": true,
+        "x": {
+          "type": "number",
+          "value": 0
+        },
+        "y": {
+          "type": "number",
+          "value": 0
+        },
+        "width": {
+          "type": "number",
+          "value": 20
+        },
+        "height": {
+          "type": "number",
+          "value": 18
+        },
+        "maskSceneId": "87940546-56d5-4cc9-9769-e64831f8008d",
+        "__collapse": true,
+        "direction": "reverse",
+        "rimFill": "black",
+        "rimTile": {
+          "type": "number",
+          "value": 0
+        },
+        "rimPalette": {
+          "type": "number",
+          "value": 7
+        }
+      },
+      "id": "c0d1fb8b-ccbc-4b1d-b19e-1274abb92c1f"
     }
   ],
   "leaveScript": [],

@@ -1,6 +1,6 @@
 # gbs-ScreenTransitionsPlugin
 
-**Version 1.0.0 — Requires GB Studio ≥ 4.3.0**
+**Version 1.1.0 — Requires GB Studio ≥ 4.3.0**
 
 A collection of tile-based screen transitions for GB Studio, provided as two events under the **Screen** group:
 
@@ -54,12 +54,30 @@ Only one effect per reverse-pair is listed — the complement (opposite side, cl
 | **X** | An X (both diagonals) that thickens outward. |
 | **Noise** | Random dissolve, seeded differently each run. |
 | **Mask grow** | The reveal order is driven by a screen-sized **mask scene** — see below. |
+| **Shrink** | The screen is cut into four quadrants that slide *toward* the centre, the fill growing at the outer rim — see below. |
+| **Split** | The same four quadrants slide *away* from the centre, the fill growing along the inner cross — see below. |
 
 ### Mask transitions
 
 **Mask grow** reveals each screen tile according to the tile *index* at the matching position in a mask scene, one distinct index per step, so the number of steps equals the mask background's tileset tile count. Grow reveals the lowest indices first; reversed (shrink) reveals the highest first.
 
 Draw a gradient in a scene — each step a different tile — and it becomes the transition shape. The mask is independent of the fill or reveal content, so it can drive a fill, a this-scene reveal, or a scene copy; just pick the **Mask scene**.
+
+### Quadrant transitions: Shrink and Split
+
+**Shrink** and **Split** are the only effects that *move* what is already on screen instead of painting over it: each step re-renders all four quadrants one tile closer to the centre point (Shrink) or one tile further from it (Split), and covers the strip a quadrant has just vacated with the fill tile.
+
+|  | Content moves | Fill grows at |
+|---|---|---|
+| **Shrink** | inward, toward the centre | the outer rim |
+| **Split** | outward, away from the centre | the inner cross |
+
+Reversed, they run as reveals: **Shrink reversed** opens the scene out from the centre, **Split reversed** closes it in from the rim. Because they re-render moving content they work in every mode — a fill *Out*, a this-scene reveal, or a copy from another scene — and the *In* event grows a **Rim tile** field for them, since it otherwise never fills anything.
+
+Two things to keep in mind:
+
+- **The centre point is where the region is cut into quadrants**, not a pivot. Left on auto it lands on the region centre — column 10, row 9 for a full screen. Move it and the four quadrants become uneven, which is a good way to bias the effect toward a doorway or the player.
+- **They cost far more per step than any other effect**, because a step redraws every tile that is still showing content rather than a single row or ring. Start around **4–6** in *Frames per step* and lower it only if your scene keeps up.
 
 ### Layers
 
@@ -70,7 +88,7 @@ Draw a gradient in a scene — each step a different tile — and it becomes the
 
 - **Direction** — *Normal* or *Reversed / Counter-clockwise*. Reversed plays the effect's steps back-to-front, flipping a wipe to the opposite side, an iris close to open, and a clock / fan / spiral to counter-clockwise. Works on every effect.
 - **Initial angle (0–255)** — rotates where a **clock** or **fan** sweep starts (0 = 12 o'clock), or tilts the **diagonal**'s front line (0 = "/" down-right, 128 = vertical, 255 = "\" down-left).
-- **Custom centre point** — moves the pivot of **iris**, **diamond**, **clock**, **fan** and **mask** off the region centre. Tick *Custom centre point*, then set *Centre X / Y* in region-relative tiles; left unticked, the pivot auto-centres the region. The resolved centre is clamped to the region, so an out-of-range value snaps to the nearest edge.
+- **Custom centre point** — moves the pivot of **iris**, **diamond**, **clock**, **fan** and **mask** — and the quadrant split of **shrink** and **split** — off the region centre. Tick *Custom centre point*, then set *Centre X / Y* in region-relative tiles; left unticked, the pivot auto-centres the region. The resolved centre is clamped to the region, so an out-of-range value snaps to the nearest edge.
   - **Centre is absolute (world) position** — with a custom centre on the **background** layer, tick this to give *Centre X / Y* as world/map tiles; the current scroll is subtracted at runtime. Handy for centring an effect on a fixed point of a scrolled background. Only offered for background transitions, since the overlay isn't scrolled.
 
 ### Timing and framing
@@ -126,6 +144,7 @@ Each transition type has its own on/off toggle, all on by default. Turning one o
 - Fill tiles **202** (black) and **201** (white) are the UI tiles GB Studio loads into VRAM every scene, so they are always available as solid fills.
 - Compatibility variants are included and selected automatically when **Screen Scroll Plugin**, **Continuous Scene Plugin**, **Metatile Plugin**, or Metatile combined with either of the first two, is installed alongside this plugin. No configuration is needed.
 - With **Metatile Plugin**, copy and mask *sources* should be **normal** scenes, not metatile scenes. Fill and revealing the current (metatile) scene are fully supported.
+- **Shrink and Split share their machinery**, so switching only one of the two off frees just that effect's own code; the shared quadrant walker comes out only when both are off.
 - Triple combinations of other plugins are not shipped as dedicated variants.
 
 ---
@@ -146,7 +165,7 @@ Dissolves the current screen into a solid fill using the chosen pattern.
 |-------|-------------|
 | Transition | Which effect to play. |
 | Layer | Background or overlay. |
-| Fill | The tile to fill with: black (202), white (201), or a custom tile id. |
+| Fill | The tile to fill with: black (202), white (201), or a custom tile id. For Shrink / Split this is the rim tile the sliding quadrants uncover. |
 | Steps per frame | How much of the effect advances each frame — higher is faster. |
 | Frames per step | Extra frames waited between batches — higher is slower. |
 | Hide sprites | Hide sprites for the duration of the transition. |
@@ -181,6 +200,7 @@ Rebuilds a scene from a filled screen using the chosen pattern.
 | Custom centre point / Centre X / Y | Move the pivot off the region centre. |
 | Centre is absolute (world) position | Treat Centre X/Y as world tiles on the background layer. |
 | Start frame / End frame | Play only a slice of the effect's steps; 0 = run to the end. |
+| Rim tile / CGB rim palette / Rim tile id | The tile drawn where a quadrant has slid away from (Shrink and Split only — the other reveals never fill). |
 | Mask scene | The scene whose tile indices drive a mask transition. |
 
 ---
@@ -195,23 +215,25 @@ move.
 
 | Setting | Bank 0 | WRAM | Banked ROM |
 |---|---|---|---|
-| Wipe | — | — | **59 B** |
-| Curtain | — | — | **267 B** |
-| Iris | — | — | **390 B** |
-| Diagonal | — | — | **391 B** |
+| Wipe | — | — | **60 B** |
+| Curtain | — | — | **268 B** |
+| Iris | — | — | **397 B** |
+| Diagonal | — | — | **132 B** |
 | Checkerboard | — | — | **88 B** |
 | Snake | — | — | **110 B** |
-| Spiral | — | — | **331 B** |
-| Blinds | — | — | **135 B** |
-| 4-Square | — | — | **122 B** |
-| Diamond | — | — | **11 B** |
+| Spiral | — | — | **324 B** |
+| Blinds | — | — | **136 B** |
+| 4-Square | — | — | **120 B** |
+| Diamond | — | — | **118 B** |
 | Clock | — | — | **46 B** |
-| Random Noise | — | — | **145 B** |
-| 4-Blade Fan | — | — | **156 B** |
-| X (cross) | — | — | **95 B** |
-| Mask (scene as mask) | — | — | **243 B** |
+| Random Noise | — | — | **148 B** |
+| 4-Blade Fan | — | — | **154 B** |
+| X (cross) | — | — | **94 B** |
+| Mask (scene as mask) | — | — | **234 B** |
+| Shrink (quadrants inward) | — | — | **64 B** |
+| Split (quadrants outward) | — | — | **79 B** |
 
-Turning off every on-by-default switch above frees **2,589 B** of banked ROM — the full
+Turning off every on-by-default switch above frees **2,572 B** of banked ROM — the full
 span between this plugin at its fullest and stripped to nothing. Treat it as a
 ceiling rather than a recipe: you keep whatever your game actually uses.
 
@@ -234,18 +256,18 @@ and settings that gate other settings only show their own contribution.
 
 ## Memory Footprint
 
-Measured against the stock GB Studio **4.3.0-e1** engine by `measure_plugin_memory.js` (per-file SDCC compile with GB Studio's own build flags, at default engine settings; report of 2026-08-13). Figures are this plugin's *delta* versus stock — a file that replaces a stock engine file counts only the difference, which is why a plugin can come out negative. Using the plugin's events additionally compiles a few bytes of GBVM script per call into your project's script banks, on top of the fixed cost below.
+Measured against the stock GB Studio **4.3.0-e1** engine by `measure_plugin_memory.js` (per-file SDCC compile with GB Studio's own build flags, at default engine settings; report of 2026-08-20). Figures are this plugin's *delta* versus stock — a file that replaces a stock engine file counts only the difference, which is why a plugin can come out negative. Using the plugin's events additionally compiles a few bytes of GBVM script per call into your project's script banks, on top of the fixed cost below.
 
 | Budget | Cost |
 |---|---|
 | Bank 0 (HOME) | 0 bytes |
-| WRAM | +47 bytes |
-| Banked ROM | +4,108 bytes |
+| WRAM | +51 bytes |
+| Banked ROM | +4,831 bytes |
 
 - **Bank 0:** nothing. Every function the plugin adds is compiled into a switchable ROM bank.
-- **WRAM:** 47 bytes — a single block of transition state shared by every effect, which is why only one transition can run at a time. It does not scale with the number of transition types enabled.
-- **Banked ROM:** 4,108 bytes with all fifteen transition types compiled in. Each type you switch off removes its own code from the build (11–391 bytes each; 2,589 bytes for the lot) — see [What each engine setting costs](#what-each-engine-setting-costs).
-- **Engine WRAM headroom:** a stock GB Studio 4.3.0 project leaves about **854 bytes** of WRAM free (usable engine WRAM is 7,776 bytes at 0xC0A0–0xDF00; the stock engine uses 6,922). With this plugin installed roughly **807 bytes** remain. That does not change with the number of global variables your project defines: the script memory array is a fixed 3,584 bytes at stock engine settings (VM_HEAP_SIZE + VM_MAX_CONTEXTS × VM_CONTEXT_STACK_SIZE = 768 + 16 × 64 words).
+- **WRAM:** 51 bytes — a single block of transition state shared by every effect, which is why only one transition can run at a time. It does not scale with the number of transition types enabled.
+- **Banked ROM:** 4,831 bytes with all seventeen transition types compiled in. Each type you switch off removes its own code from the build (46–397 bytes each; 2,572 bytes for the lot) — see [What each engine setting costs](#what-each-engine-setting-costs).
+- **Engine WRAM headroom:** a stock GB Studio 4.3.0 project leaves about **854 bytes** of WRAM free (usable engine WRAM is 7,776 bytes at 0xC0A0–0xDF00; the stock engine uses 6,922). With this plugin installed roughly **803 bytes** remain. That does not change with the number of global variables your project defines: the script memory array is a fixed 3,584 bytes at stock engine settings (VM_HEAP_SIZE + VM_MAX_CONTEXTS × VM_CONTEXT_STACK_SIZE = 768 + 16 × 64 words).
 - **SRAM:** not used.
 
 ---
@@ -279,6 +301,12 @@ Grouped by the date each change was merged into the official
 
 Only bug fixes, new features and feature changes are listed. Engine version
 bumps, patch regeneration, packaging fixes and documentation edits are omitted.
+
+### 2026-08-20
+
+- Added the **Shrink** and **Split** quadrant-shift transitions, each with its own engine setting.
+- The *Screen Transition In* event gained a **Rim tile** field, used by those two transitions.
+- Shrink and Split work on the overlay as well as the background, so they can still leave the window covering the screen for a seamless Change Scene.
 
 ### 2026-07-26
 
